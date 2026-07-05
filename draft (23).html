@@ -1,0 +1,1838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Draft Room — Pokemon VGC Draft League</title>
+<meta name="description" content="Live snake draft room: 10 trainers, 100-point budget, 10 roster slots, Regulation M-B pool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0D0D0D;
+    --ink-soft:#161616;
+    --panel:#1C1C1C;
+    --panel-2:#242424;
+    --cream:#FAFAF7;
+    --cream-dim:#B8B7B2;
+    --gold:#FFCB05;
+    --gold-soft:#C79A00;
+    --teal:#B00000;
+    --teal-bright:#FF5A5A;
+    --scarlet:#EE1515;
+    --slate:#3A3A3A;
+    --line: rgba(250,250,247,0.14);
+
+    --display: 'Big Shoulders Display', sans-serif;
+    --body: 'Inter', sans-serif;
+    --mono: 'Space Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--cream);
+    font-family:var(--body);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none;}
+  ::selection{background:var(--gold);color:var(--ink);}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+
+  h1,h2,h3{
+    font-family:var(--display);
+    text-transform:uppercase;
+    letter-spacing:0.01em;
+    line-height:0.96;
+    margin:0;
+  }
+
+  header.site-nav{
+    position:sticky; top:0; z-index:60;
+    background:rgba(22,33,29,0.92);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 22px;
+    max-width:1400px;margin:0 auto;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:18px;letter-spacing:0.02em;text-transform:uppercase;}
+  .brand-mark{width:22px;height:22px;flex-shrink:0;}
+  .nav-links{display:flex;gap:20px;font-size:13px;font-weight:600;color:var(--cream-dim);}
+  .nav-links a:hover{color:var(--gold);}
+
+  main{max-width:1400px;margin:0 auto;padding:28px 22px 80px;}
+
+  /* ---------- Setup panel ---------- */
+  .setup{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:28px;
+    margin-bottom:28px;
+  }
+  .setup h2{font-size:28px;margin-bottom:6px;}
+  .setup p.hint{color:var(--cream-dim);font-size:14px;margin:0 0 20px;max-width:600px;}
+  .setup-row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin-bottom:20px;}
+  .field-inline label{
+    display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;
+    letter-spacing:0.08em;color:var(--cream-dim);margin-bottom:6px;
+  }
+  select, input[type=text], input[type=number], textarea{
+    background:var(--ink-soft);
+    border:1px solid var(--line);
+    color:var(--cream);
+    padding:10px 12px;
+    border-radius:3px;
+    font-family:var(--body);
+    font-size:14px;
+  }
+  select:focus, input:focus, textarea:focus{border-color:var(--gold);}
+  .trainer-name-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(180px,1fr));
+    gap:10px;
+    margin-bottom:20px;
+  }
+  .trainer-name-grid input{width:100%;}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    font-weight:700;font-size:13px;letter-spacing:0.02em;text-transform:uppercase;
+    padding:12px 22px;border-radius:3px;cursor:pointer;border:1px solid transparent;
+    transition:transform .12s ease, background .15s ease;font-family:var(--body);
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+  .btn-primary{background:var(--gold);color:var(--ink);}
+  .btn-primary:hover{background:#e6bb3c;}
+  .btn-ghost{border-color:var(--line);color:var(--cream);background:transparent;}
+  .btn-ghost:hover{border-color:var(--gold);color:var(--gold);}
+  .btn-danger{border-color:rgba(194,59,59,0.4);color:#E27F72;background:transparent;}
+  .btn-danger:hover{border-color:var(--scarlet);}
+  .btn-sm{padding:7px 14px;font-size:11px;}
+
+  /* ---------- Status bar ---------- */
+  .status-bar{
+    display:flex;flex-wrap:wrap;gap:24px;
+    align-items:center;justify-content:space-between;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:20px 24px;
+    margin-bottom:24px;
+  }
+  .status-bar.hidden{display:none;}
+  .clock-info{display:flex;gap:28px;flex-wrap:wrap;align-items:center;}
+  .clock-info .eyebrow{
+    font-family:var(--mono);font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:0.1em;
+    display:block;margin-bottom:4px;
+  }
+  .clock-info .big{font-family:var(--display);font-size:30px;text-transform:uppercase;}
+  .clock-info .sub{font-family:var(--mono);font-size:12px;color:var(--cream-dim);}
+  #pickTimer.urgent{color:var(--scarlet) !important;animation:pulse 1s infinite;}
+  @keyframes pulse{
+    0%,100%{opacity:1;} 50%{opacity:0.35;}
+  }
+  .status-actions{display:flex;gap:10px;}
+
+  /* ---------- Pick Reveal Overlay ---------- */
+  .pick-reveal{
+    position:fixed; inset:0; z-index:500;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(13,13,13,0.82);
+    backdrop-filter:blur(8px);
+    opacity:0; pointer-events:none;
+    transition:opacity .25s ease;
+    cursor:pointer;
+  }
+  .pick-reveal.show{ opacity:1; pointer-events:auto; }
+  .pr-burst{
+    position:absolute;
+    width:340px; height:340px; border-radius:50%;
+    background:radial-gradient(circle, rgba(255,203,5,0.85), rgba(255,203,5,0) 68%);
+    opacity:0; pointer-events:none;
+  }
+  .pr-burst.flash{ animation:prFlashBurst .8s ease-out; }
+  @keyframes prFlashBurst{
+    0%{ opacity:0; transform:scale(0.25); }
+    35%{ opacity:0.9; transform:scale(1.3); }
+    100%{ opacity:0; transform:scale(2.1); }
+  }
+  .pick-reveal-inner{
+    position:relative;
+    text-align:center;
+    padding:0 24px;
+    transform:scale(0.55) translateY(10px);
+    opacity:0;
+    transition:transform .45s cubic-bezier(.2,1.6,.4,1), opacity .3s ease;
+  }
+  .pick-reveal.show .pick-reveal-inner{ transform:scale(1) translateY(0); opacity:1; }
+  .pr-trainer{
+    font-family:var(--mono); font-size:13px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:6px;
+  }
+  .pr-sprite-wrap{ position:relative; display:flex; align-items:center; justify-content:center; }
+  .pr-sprite{
+    position:relative; z-index:1;
+    width:200px; height:200px; object-fit:contain;
+    filter:drop-shadow(0 0 36px rgba(255,203,5,0.55));
+  }
+  .pr-name{
+    font-family:var(--display); font-weight:900; text-transform:uppercase;
+    font-size:clamp(34px, 6vw, 58px); line-height:0.95; margin-top:6px;
+  }
+  .pr-name .pr-var{ color:var(--teal-bright); font-family:var(--mono); font-size:0.42em; vertical-align:middle; margin-left:6px; }
+  .pr-types{ display:flex; gap:8px; justify-content:center; margin-top:14px; }
+  .pr-types .type-badge{ font-size:12px; padding:4px 10px; }
+  .pr-tier{ font-family:var(--mono); font-size:15px; color:var(--gold); margin-top:14px; letter-spacing:0.06em; }
+  .pr-hint{ font-family:var(--mono); font-size:10.5px; color:var(--cream-dim); margin-top:26px; text-transform:uppercase; letter-spacing:0.1em; opacity:0.6; }
+
+  /* ---------- Layout ---------- */
+  .draft-layout{
+    display:grid;
+    grid-template-columns:340px 1fr;
+    gap:24px;
+    align-items:start;
+  }
+  @media (max-width:980px){
+    .draft-layout{grid-template-columns:1fr;}
+  }
+
+  /* ---------- Trainer roster panel ---------- */
+  .rosters{
+    display:flex;flex-direction:column;gap:12px;
+    max-height:calc(100vh - 220px);
+    overflow-y:auto;
+    position:sticky; top:80px;
+  }
+  @media (max-width:980px){
+    .rosters{position:static;max-height:none;}
+  }
+  .trainer-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:14px 16px;
+  }
+  .trainer-card.active{
+    border-color:var(--gold);
+    background:rgba(255,203,5,0.07);
+  }
+  .trainer-card.full{opacity:0.55;}
+  .trainer-head{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .trainer-head .t-name{font-family:var(--display);font-size:18px;text-transform:uppercase;}
+  .trainer-head .t-budget{font-family:var(--mono);font-size:13px;color:var(--gold);white-space:nowrap;}
+  .trainer-slots{font-family:var(--mono);font-size:10px;color:var(--cream-dim);text-transform:uppercase;letter-spacing:0.06em;margin-top:2px;}
+  .picks-list{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:5px;}
+  .picks-list li{
+    display:flex;justify-content:space-between;gap:8px;
+    font-size:12.5px;color:var(--cream-dim);
+    border-top:1px solid var(--line);
+    padding-top:5px;
+  }
+  .picks-list li .p-tier{font-family:var(--mono);color:var(--gold);}
+  .picks-list .empty-slot{opacity:0.35;font-style:italic;}
+
+  /* ---------- Pool panel ---------- */
+  .pool-panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:20px;
+  }
+  .pool-controls{
+    display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;
+    margin-bottom:16px;
+    padding-bottom:16px;
+    border-bottom:1px solid var(--line);
+  }
+  .pool-controls .field-inline input, .pool-controls .field-inline select{min-width:150px;}
+  .pool-count{font-family:var(--mono);font-size:12px;color:var(--cream-dim);margin-left:auto;align-self:center;}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  thead th{
+    text-align:left;font-family:var(--mono);font-size:10.5px;text-transform:uppercase;
+    letter-spacing:0.06em;color:var(--cream-dim);padding:8px 10px;border-bottom:1px solid var(--line);
+    position:sticky;top:0;background:var(--panel);
+  }
+  tbody td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tbody tr:hover{background:rgba(255,203,5,0.05);}
+  tbody tr.drafted{opacity:0.3;}
+  .tier-chip{
+    font-family:var(--mono);font-weight:700;font-size:12px;
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:26px;height:26px;border-radius:4px;
+    background:rgba(255,203,5,0.15);color:var(--gold);
+  }
+  .sprite-cell{width:44px;padding-right:0;}
+  .sprite-img{display:block;width:36px;height:36px;object-fit:contain;}
+  .roster-sprite{width:22px;height:22px;object-fit:contain;flex-shrink:0;}
+  .pick-line{display:flex;align-items:center;gap:8px;}
+  .type-badges{display:flex;gap:4px;flex-wrap:wrap;}
+  .type-badge{
+    font-family:var(--mono);font-size:9.5px;font-weight:700;text-transform:uppercase;
+    letter-spacing:0.02em;padding:2px 6px;border-radius:3px;line-height:1.5;white-space:nowrap;
+  }
+  .pick-line .pick-text{flex:1;display:flex;justify-content:space-between;gap:8px;}
+  .mon-name{font-weight:600;}
+  .mon-var{font-family:var(--mono);font-size:11px;color:var(--teal-bright);margin-left:6px;}
+  .pool-scroll{max-height:640px;overflow-y:auto;}
+
+  .empty-state{
+    text-align:center;padding:60px 20px;color:var(--cream-dim);font-size:14px;
+  }
+
+  .live-banner{
+    background:var(--panel);border:1px solid var(--gold);border-radius:6px;
+    padding:18px 22px;margin-bottom:24px;
+  }
+  .live-banner .lb-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+  .live-banner .lb-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);}
+  .live-banner .lb-link{
+    display:flex;align-items:center;gap:8px;background:var(--ink-soft);border:1px solid var(--line);
+    border-radius:4px;padding:8px 12px;font-family:var(--mono);font-size:12.5px;color:var(--cream-dim);
+    max-width:100%;overflow:hidden;
+  }
+  .live-banner .lb-link span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .seat-list{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+  .seat-btn{
+    font-family:var(--body);font-size:13px;font-weight:600;
+    padding:6px 14px 6px 6px;border-radius:20px;border:1px solid var(--line);
+    background:var(--ink-soft);color:var(--cream);cursor:pointer;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .seat-btn:hover{border-color:var(--gold);}
+  .seat-btn.taken{opacity:0.4;cursor:not-allowed;border-style:dashed;}
+  .seat-btn.mine{background:var(--gold);color:var(--ink);border-color:var(--gold);cursor:default;}
+  .avatar-thumb{width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--slate);}
+  .avatar-thumb-placeholder{
+    width:26px;height:26px;border-radius:50%;flex-shrink:0;background:var(--slate);
+    display:flex;align-items:center;justify-content:center;font-size:11px;
+  }
+
+  .draft-complete{
+    text-align:center;padding:48px 20px;
+  }
+  .draft-complete h2{font-size:40px;color:var(--gold);}
+  .draft-complete p{color:var(--cream-dim);margin-top:8px;}
+
+  footer{max-width:1400px;margin:0 auto;padding:28px 22px 60px;color:var(--cream-dim);font-size:12.5px;}
+
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-track{background:var(--ink-soft);}
+  ::-webkit-scrollbar-thumb{background:var(--slate);border-radius:4px;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site-nav">
+  <div class="nav-inner">
+    <a href="home.html" class="brand">
+      <svg class="brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="45" fill="#fff" stroke="#111" stroke-width="6"/>
+        <path d="M6,50 A44,44 0 0,1 94,50 Z" fill="#EE1515" stroke="#111" stroke-width="6"/>
+        <line x1="6" y1="50" x2="94" y2="50" stroke="#111" stroke-width="7"/>
+        <circle cx="50" cy="50" r="15" fill="#fff" stroke="#111" stroke-width="7"/>
+        <circle cx="50" cy="50" r="6" fill="#111"/>
+      </svg>
+      Pokemon VGC Draft League
+    </a>
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+      <a href="index.html#format">Format</a>
+      <a href="index.html#how">How It Works</a>
+      <a href="pool.html">Pool</a>
+      <a href="results.html">Results</a>
+      <a href="schedule.html">Schedule</a>
+      <a href="standings.html">Standings</a>
+      <span style="color:var(--gold);">Draft Room</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="setup" id="setupPanel">
+    <h2>Set Up the Draft</h2>
+    <p class="hint">10-trainer league, 100 points per trainer, 10 roster slots each. Name the season, set your trainer names, and hit start — this creates a live shared draft room with a 10-minute countdown before the clock starts, so you have time to send the invite link and let everyone claim their seat. You can also start it early as the host.</p>
+
+    <div class="setup-row">
+      <div class="field-inline" style="flex:1;min-width:220px;">
+        <label for="seasonName">Season / league name</label>
+        <input type="text" id="seasonName" placeholder="e.g. Season 1" style="width:100%;">
+      </div>
+    </div>
+
+    <div class="setup-row">
+      <div class="field-inline">
+        <label for="numTrainers">Number of trainers</label>
+        <select id="numTrainers"></select>
+      </div>
+      <div class="field-inline">
+        <label for="numSlots">Roster slots per trainer</label>
+        <select id="numSlots"></select>
+      </div>
+      <div class="field-inline">
+        <label for="budget">Point budget per trainer</label>
+        <input type="number" id="budget" value="100" min="1">
+      </div>
+      <div class="field-inline">
+        <label for="orderMode">Draft order</label>
+        <select id="orderMode">
+          <option value="entered">As entered</option>
+          <option value="random">Randomize</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="trainer-name-grid" id="trainerNameGrid"></div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <button class="btn btn-primary" id="startBtn">Start the draft</button>
+      <button class="btn btn-ghost" id="importBtn">Load saved draft</button>
+    </div>
+    <textarea id="importArea" placeholder="Paste exported draft JSON here, then click Load saved draft again" style="display:none;width:100%;height:100px;margin-top:12px;"></textarea>
+  </div>
+
+  <div class="setup" id="joiningMsg" style="display:none;text-align:center;">
+    <h2>Joining Draft…</h2>
+    <p class="hint" style="margin:0 auto;">Connecting to the live draft session.</p>
+  </div>
+
+  <div id="liveBanner"></div>
+
+  <div class="setup" id="waitingPanel" style="display:none;text-align:center;">
+    <span class="eyebrow">Draft starts soon</span>
+    <h2 style="margin-top:10px;">Draft Starts In</h2>
+    <div id="waitingCountdown" style="font-family:var(--display);font-size:64px;color:var(--gold);margin:16px 0;">10:00</div>
+    <p class="hint" style="margin:0 auto;">Share the invite link above and have everyone claim their seat. The draft begins automatically when the clock hits zero.</p>
+    <button class="btn btn-primary" id="startNowBtn" style="margin-top:20px;display:none;">Start draft now</button>
+
+    <div id="profileEditor" style="display:none;max-width:360px;margin:28px auto 0;border-top:1px solid var(--line);padding-top:22px;">
+      <span class="eyebrow" style="display:block;margin-bottom:12px;">Your Trainer Profile</span>
+      <div style="display:flex;align-items:center;gap:14px;justify-content:center;margin-bottom:14px;">
+        <img id="profileAvatarPreview" src="" alt="" style="width:56px;height:56px;border-radius:50%;object-fit:cover;background:var(--ink-soft);border:2px solid var(--line);display:none;">
+        <div id="profileAvatarPlaceholder" style="width:56px;height:56px;border-radius:50%;background:var(--ink-soft);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--cream-dim);">no photo</div>
+        <label class="btn btn-ghost btn-sm" style="cursor:pointer;">
+          Upload photo
+          <input type="file" id="avatarInput" accept="image/*" style="display:none;">
+        </label>
+      </div>
+      <div class="field" style="text-align:left;">
+        <label for="nameInput">Display name</label>
+        <input type="text" id="nameInput" placeholder="Your trainer name" style="width:100%;">
+      </div>
+      <button class="btn btn-primary btn-sm" id="saveProfileBtn" style="margin-top:10px;">Save changes</button>
+      <p class="signup-note" id="profileStatus" style="margin-top:10px;"></p>
+    </div>
+  </div>
+
+  <div id="cropModal" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(13,13,13,0.85);align-items:center;justify-content:center;flex-direction:column;gap:16px;">
+    <span class="eyebrow" style="color:var(--gold);">Drag to reposition · scroll or use the slider to zoom</span>
+    <div id="cropViewport" style="width:240px;height:240px;border-radius:50%;overflow:hidden;position:relative;border:2px solid var(--gold);cursor:grab;background:var(--ink-soft);touch-action:none;">
+      <img id="cropImage" style="position:absolute;left:0;top:0;user-select:none;pointer-events:none;" alt="">
+    </div>
+    <input type="range" id="cropZoomSlider" min="0" max="1" step="0.001" value="0" style="width:240px;">
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-primary" id="cropConfirmBtn">Use this photo</button>
+      <button class="btn btn-ghost" id="cropCancelBtn">Cancel</button>
+    </div>
+  </div>
+
+  <div class="status-bar hidden" id="statusBar">
+    <div class="clock-info">
+      <div>
+        <span class="eyebrow" id="roundLabel">Round 1 of 10</span>
+        <span class="big" id="onClockName">—</span>
+      </div>
+      <div>
+        <span class="eyebrow">Time Left</span>
+        <span class="big" id="pickTimer" style="font-size:30px;color:var(--gold);">60s</span>
+      </div>
+      <div>
+        <span class="eyebrow">Points Remaining</span>
+        <span class="sub" id="onClockPoints" style="font-size:20px;color:var(--gold);">—</span>
+      </div>
+      <div>
+        <span class="eyebrow">Overall Pick</span>
+        <span class="sub" id="pickCounter" style="font-size:20px;">—</span>
+      </div>
+    </div>
+    <div class="status-actions">
+      <button class="btn btn-ghost btn-sm" id="soundToggleBtn" title="Toggle pick sound" style="font-size:16px;padding:8px 12px;">🔊</button>
+      <button class="btn btn-ghost btn-sm" id="undoBtn">Undo last pick</button>
+      <button class="btn btn-ghost btn-sm" id="exportBtn">Export draft</button>
+      <button class="btn btn-danger btn-sm" id="resetBtn">Reset draft</button>
+    </div>
+  </div>
+
+  <div id="draftLayout" style="display:none;">
+    <div class="draft-layout">
+      <div class="rosters" id="rosters"></div>
+
+      <div class="pool-panel">
+        <div class="pool-controls">
+          <div class="field-inline">
+            <label for="searchBox">Search</label>
+            <input type="text" id="searchBox" placeholder="Pokémon name…">
+          </div>
+          <div class="field-inline">
+            <label for="tierFilter">Tier</label>
+            <select id="tierFilter"><option value="all">All tiers</option></select>
+          </div>
+          <div class="field-inline">
+            <label for="typeFilter">Type</label>
+            <select id="typeFilter"><option value="all">All types</option></select>
+          </div>
+          <div class="field-inline">
+            <label for="sortMode">Sort by</label>
+            <select id="sortMode">
+              <option value="tierDesc">Tier: high to low</option>
+              <option value="tierAsc">Tier: low to high</option>
+              <option value="nameAsc">Name: A–Z</option>
+            </select>
+          </div>
+          <div class="field-inline">
+            <label for="showDrafted">
+              <input type="checkbox" id="showDrafted" style="width:auto;margin-right:6px;">Show drafted
+            </label>
+          </div>
+          <span class="pool-count" id="poolCount"></span>
+        </div>
+        <div class="pool-scroll">
+          <table>
+            <thead>
+              <tr><th></th><th>Pokémon</th><th>Type</th><th>Gen</th><th>Tier</th><th></th></tr>
+            </thead>
+            <tbody id="poolBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="draft-complete" id="completePanel" style="display:none;">
+    <span class="eyebrow" id="completeSeasonName" style="display:block;margin-bottom:10px;"></span>
+    <h2>Draft Complete</h2>
+    <p>Every roster is locked. Save the results to the site so they can be looked up later, or export a JSON copy for yourself.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px;">
+      <button class="btn btn-primary" id="saveDbBtn">Save results to site</button>
+      <button class="btn btn-ghost" id="exportBtn2">Export draft (JSON)</button>
+    </div>
+    <p class="signup-note" id="saveDbStatus" style="margin-top:14px;"></p>
+    <div style="border-top:1px solid var(--line);margin-top:28px;padding-top:20px;">
+      <button class="btn btn-danger" id="newDraftBtn">Start a new draft</button>
+    </div>
+  </div>
+
+</main>
+
+<div class="pick-reveal" id="pickReveal">
+  <div class="pr-burst" id="prBurst"></div>
+  <div class="pick-reveal-inner">
+    <div class="pr-trainer" id="prTrainer">Trainer selects</div>
+    <div class="pr-sprite-wrap">
+      <img class="pr-sprite" id="prSprite" alt="">
+    </div>
+    <div class="pr-name" id="prName">Pokémon</div>
+    <div class="pr-types" id="prTypes"></div>
+    <div class="pr-tier" id="prTier"></div>
+    <div class="pr-hint">tap to dismiss</div>
+  </div>
+</div>
+
+<footer>
+  Draft state lives in this browser tab until you save it. Use <b>Save results to site</b> once the draft wraps to store it permanently, or <b>Export draft</b> for a personal JSON backup you can reload with <b>Load saved draft</b>.
+</footer>
+
+<script>
+const POOL = [{"id": 9, "name": "Charizard", "variation": "Mega-Y", "gen": 6, "tier": 20, "types": ["fire", "flying"]}, {"id": 1242, "name": "Floette", "variation": "Mega", "gen": 9, "tier": 20, "types": ["fairy"]}, {"id": 128, "name": "Gengar", "variation": "Mega", "gen": 6, "tier": 20, "types": ["ghost", "poison"]}, {"id": 1206, "name": "Archaludon", "variation": "", "gen": 9, "tier": 19, "types": ["steel", "dragon"]}, {"id": 1074, "name": "Basculegion", "variation": "", "gen": 8, "tier": 19, "types": ["water", "ghost"]}, {"id": 1228, "name": "Froslass", "variation": "Mega", "gen": 9, "tier": 19, "types": ["ice", "ghost"]}, {"id": 1182, "name": "Gholdengo", "variation": "", "gen": 9, "tier": 19, "types": ["steel", "ghost"]}, {"id": 376, "name": "Mawile", "variation": "Mega", "gen": 6, "tier": 19, "types": ["steel", "fairy"]}, {"id": 463, "name": "Metagross", "variation": "Mega", "gen": 6, "tier": 19, "types": ["steel", "psychic"]}, {"id": 1076, "name": "Sneasler", "variation": "", "gen": 8, "tier": 19, "types": ["fighting", "poison"]}, {"id": 1227, "name": "Staraptor", "variation": "Mega", "gen": 9, "tier": 19, "types": ["fighting", "flying"]}, {"id": 328, "name": "Swampert", "variation": "Mega", "gen": 6, "tier": 19, "types": ["water", "ground"]}, {"id": 662, "name": "Whimsicott", "variation": "", "gen": 5, "tier": 19, "types": ["grass", "fairy"]}, {"id": 545, "name": "Garchomp", "variation": "", "gen": 4, "tier": 18, "types": ["dragon", "ground"]}, {"id": 353, "name": "Gardevoir", "variation": "Mega", "gen": 6, "tier": 18, "types": ["psychic", "fairy"]}, {"id": 878, "name": "Incineroar", "variation": "", "gen": 7, "tier": 18, "types": ["fire", "dark"]}, {"id": 155, "name": "Kangaskhan", "variation": "Mega", "gen": 6, "tier": 18, "types": ["normal"]}, {"id": 1198, "name": "Sinistcha", "variation": "", "gen": 9, "tier": 18, "types": ["grass", "ghost"]}, {"id": 189, "name": "Aerodactyl", "variation": "", "gen": 1, "tier": 17, "types": ["rock", "flying"]}, {"id": 190, "name": "Aerodactyl", "variation": "Mega", "gen": 6, "tier": 17, "types": ["rock", "flying"]}, {"id": 1159, "name": "Annihilape", "variation": "", "gen": 9, "tier": 17, "types": ["fighting", "ghost"]}, {"id": 13, "name": "Blastoise", "variation": "Mega", "gen": 6, "tier": 17, "types": ["water"]}, {"id": 1239, "name": "Delphox", "variation": "Mega", "gen": 9, "tier": 17, "types": ["fire", "psychic"]}, {"id": 1024, "name": "Grimmsnarl", "variation": "", "gen": 8, "tier": 17, "types": ["dark", "fairy"]}, {"id": 1164, "name": "Kingambit", "variation": "", "gen": 9, "tier": 17, "types": ["dark", "steel"]}, {"id": 1241, "name": "Pyroar", "variation": "Mega", "gen": 9, "tier": 17, "types": ["fire", "normal"]}, {"id": 313, "name": "Tyranitar", "variation": "Mega", "gen": 6, "tier": 17, "types": ["rock", "dark"]}, {"id": 817, "name": "Aegislash", "variation": "", "gen": 6, "tier": 16, "types": ["steel", "ghost"]}, {"id": 200, "name": "Dragonite", "variation": "", "gen": 1, "tier": 16, "types": ["dragon", "flying"]}, {"id": 1161, "name": "Farigiraf", "variation": "", "gen": 9, "tier": 16, "types": ["normal", "psychic"]}, {"id": 1256, "name": "Glimmora", "variation": "Mega", "gen": 9, "tier": 16, "types": ["rock", "poison"]}, {"id": 528, "name": "Lopunny", "variation": "Mega", "gen": 6, "tier": 16, "types": ["normal", "fighting"]}, {"id": 1100, "name": "Maushold", "variation": "", "gen": 9, "tier": 16, "types": ["normal"]}, {"id": 349, "name": "Pelipper", "variation": "", "gen": 3, "tier": 16, "types": ["water", "flying"]}, {"id": 312, "name": "Tyranitar", "variation": "", "gen": 2, "tier": 16, "types": ["rock", "dark"]}, {"id": 764, "name": "Volcarona", "variation": "", "gen": 5, "tier": 16, "types": ["bug", "fire"]}, {"id": 80, "name": "Arcanine", "variation": "Hisui", "gen": 1, "tier": 15, "types": ["fire", "rock"]}, {"id": 1245, "name": "Barbaracle", "variation": "Mega", "gen": 9, "tier": 15, "types": ["rock", "fighting"]}, {"id": 324, "name": "Blaziken", "variation": "Mega", "gen": 6, "tier": 15, "types": ["fire", "fighting"]}, {"id": 8, "name": "Charizard", "variation": "Mega-X", "gen": 6, "tier": 15, "types": ["fire", "dragon"]}, {"id": 48, "name": "Clefable", "variation": "", "gen": 1, "tier": 15, "types": ["fairy"]}, {"id": 1053, "name": "Dragapult", "variation": "", "gen": 8, "tier": 15, "types": ["dragon", "ghost"]}, {"id": 1222, "name": "Dragonite", "variation": "Mega", "gen": 9, "tier": 15, "types": ["dragon", "flying"]}, {"id": 1235, "name": "Eelektross", "variation": "Mega", "gen": 9, "tier": 15, "types": ["electric"]}, {"id": 550, "name": "Lucario", "variation": "Mega", "gen": 6, "tier": 15, "types": ["fighting", "steel"]}, {"id": 881, "name": "Primarina", "variation": "", "gen": 7, "tier": 15, "types": ["water", "fairy"]}, {"id": 1218, "name": "Raichu", "variation": "Mega-Y", "gen": 9, "tier": 15, "types": ["electric"]}, {"id": 320, "name": "Sceptile", "variation": "Mega", "gen": 6, "tier": 15, "types": ["grass", "dragon"]}, {"id": 272, "name": "Scizor", "variation": "Mega", "gen": 6, "tier": 15, "types": ["bug", "steel"]}, {"id": 1221, "name": "Starmie", "variation": "Mega", "gen": 9, "tier": 15, "types": ["water", "psychic"]}, {"id": 837, "name": "Sylveon", "variation": "", "gen": 6, "tier": 15, "types": ["fairy"]}, {"id": 798, "name": "Talonflame", "variation": "", "gen": 6, "tier": 15, "types": ["fire", "flying"]}, {"id": 402, "name": "Torkoal", "variation": "", "gen": 3, "tier": 15, "types": ["fire"]}, {"id": 79, "name": "Arcanine", "variation": "", "gen": 1, "tier": 14, "types": ["fire"]}, {"id": 1219, "name": "Clefable", "variation": "Mega", "gen": 9, "tier": 14, "types": ["fairy", "flying"]}, {"id": 546, "name": "Garchomp", "variation": "Mega", "gen": 6, "tier": 14, "types": ["dragon", "ground"]}, {"id": 176, "name": "Gyarados", "variation": "Mega", "gen": 6, "tier": 14, "types": ["water", "dark"]}, {"id": 762, "name": "Hydreigon", "variation": "", "gen": 5, "tier": 14, "types": ["dark", "dragon"]}, {"id": 943, "name": "Kommo-o", "variation": "", "gen": 7, "tier": 14, "types": ["dragon", "fighting"]}, {"id": 1223, "name": "Meganium", "variation": "Mega", "gen": 9, "tier": 14, "types": ["grass", "fairy"]}, {"id": 462, "name": "Metagross", "variation": "", "gen": 3, "tier": 14, "types": ["steel", "psychic"]}, {"id": 429, "name": "Milotic", "variation": "", "gen": 3, "tier": 14, "types": ["water"]}, {"id": 52, "name": "Ninetales", "variation": "Alola", "gen": 7, "tier": 14, "types": ["ice", "fairy"]}, {"id": 585, "name": "Rotom", "variation": "Wash", "gen": 4, "tier": 14, "types": ["electric", "water"]}, {"id": 1255, "name": "Scovillain", "variation": "Mega", "gen": 9, "tier": 14, "types": ["grass", "fire"]}, {"id": 1234, "name": "Scrafty", "variation": "Mega", "gen": 9, "tier": 14, "types": ["dark", "fighting"]}, {"id": 4, "name": "Venusaur", "variation": "Mega", "gen": 6, "tier": 14, "types": ["grass", "poison"]}, {"id": 985, "name": "Corviknight", "variation": "", "gen": 8, "tier": 13, "types": ["flying", "steel"]}, {"id": 644, "name": "Excadrill", "variation": "", "gen": 5, "tier": 13, "types": ["ground", "steel"]}, {"id": 1232, "name": "Excadrill", "variation": "Mega", "gen": 9, "tier": 13, "types": ["ground", "steel"]}, {"id": 1150, "name": "Glimmora", "variation": "", "gen": 9, "tier": 13, "types": ["rock", "poison"]}, {"id": 175, "name": "Gyarados", "variation": "", "gen": 1, "tier": 13, "types": ["water", "flying"]}, {"id": 241, "name": "Politoed", "variation": "", "gen": 2, "tier": 13, "types": ["water"]}, {"id": 682, "name": "Scrafty", "variation": "", "gen": 5, "tier": 13, "types": ["dark", "fighting"]}, {"id": 3, "name": "Venusaur", "variation": "", "gen": 1, "tier": 13, "types": ["grass", "poison"]}, {"id": 87, "name": "Alakazam", "variation": "Mega", "gen": 6, "tier": 12, "types": ["psychic"]}, {"id": 239, "name": "Azumarill", "variation": "", "gen": 2, "tier": 12, "types": ["water", "fairy"]}, {"id": 1075, "name": "Basculegion", "variation": "F", "gen": 8, "tier": 12, "types": ["water", "ghost"]}, {"id": 579, "name": "Gallade", "variation": "Mega", "gen": 6, "tier": 12, "types": ["psychic", "fighting"]}, {"id": 1240, "name": "Greninja", "variation": "Mega", "gen": 9, "tier": 12, "types": ["water", "dark"]}, {"id": 1244, "name": "Malamar", "variation": "Mega", "gen": 9, "tier": 12, "types": ["dark", "psychic"]}, {"id": 576, "name": "Mamoswine", "variation": "", "gen": 4, "tier": 12, "types": ["ice", "ground"]}, {"id": 383, "name": "Medicham", "variation": "Mega", "gen": 6, "tier": 12, "types": ["fighting", "psychic"]}, {"id": 1082, "name": "Meowscarada", "variation": "", "gen": 9, "tier": 12, "types": ["grass", "dark"]}, {"id": 1077, "name": "Overqwil", "variation": "", "gen": 8, "tier": 12, "types": ["dark", "poison"]}, {"id": 1143, "name": "Palafin", "variation": "", "gen": 9, "tier": 12, "types": ["water"]}, {"id": 1217, "name": "Raichu", "variation": "Mega-X", "gen": 9, "tier": 12, "types": ["electric"]}, {"id": 584, "name": "Rotom", "variation": "Heat", "gen": 4, "tier": 12, "types": ["electric", "fire"]}, {"id": 910, "name": "Araquanid", "variation": "", "gen": 7, "tier": 11, "types": ["water", "bug"]}, {"id": 1246, "name": "Dragalge", "variation": "Mega", "gen": 9, "tier": 11, "types": ["poison", "dragon"]}, {"id": 805, "name": "Floette", "variation": "", "gen": 6, "tier": 11, "types": ["fairy"]}, {"id": 846, "name": "Klefki", "variation": "", "gen": 6, "tier": 11, "types": ["steel", "fairy"]}, {"id": 813, "name": "Meowstic", "variation": "", "gen": 6, "tier": 11, "types": ["psychic"]}, {"id": 937, "name": "Mimikyu", "variation": "", "gen": 7, "tier": 11, "types": ["ghost", "fairy"]}, {"id": 51, "name": "Ninetales", "variation": "", "gen": 1, "tier": 11, "types": ["fire"]}, {"id": 588, "name": "Rotom", "variation": "Mow", "gen": 4, "tier": 11, "types": ["electric", "grass"]}, {"id": 373, "name": "Sableye", "variation": "", "gen": 3, "tier": 11, "types": ["dark", "ghost"]}, {"id": 271, "name": "Scizor", "variation": "", "gen": 2, "tier": 11, "types": ["bug", "steel"]}, {"id": 1233, "name": "Scolipede", "variation": "Mega", "gen": 9, "tier": 11, "types": ["bug", "poison"]}, {"id": 1225, "name": "Skarmory", "variation": "Mega", "gen": 9, "tier": 11, "types": ["steel", "flying"]}, {"id": 493, "name": "Staraptor", "variation": "", "gen": 4, "tier": 11, "types": ["normal", "flying"]}, {"id": 173, "name": "Tauros", "variation": "Paldea-Aqua", "gen": 1, "tier": 11, "types": ["fighting", "water"]}, {"id": 1138, "name": "Tinkaton", "variation": "", "gen": 9, "tier": 11, "types": ["fairy", "steel"]}, {"id": 401, "name": "Camerupt", "variation": "Mega", "gen": 6, "tier": 10, "types": ["fire", "ground"]}, {"id": 1254, "name": "Falinks", "variation": "Mega", "gen": 9, "tier": 10, "types": ["fighting"]}, {"id": 352, "name": "Gardevoir", "variation": "", "gen": 3, "tier": 10, "types": ["psychic", "fairy"]}, {"id": 1237, "name": "Golurk", "variation": "Mega", "gen": 9, "tier": 10, "types": ["ground", "ghost"]}, {"id": 1247, "name": "Hawlucha", "variation": "Mega", "gen": 9, "tier": 10, "types": ["fighting", "flying"]}, {"id": 624, "name": "Liepard", "variation": "", "gen": 5, "tier": 10, "types": ["dark"]}, {"id": 386, "name": "Manectric", "variation": "Mega", "gen": 6, "tier": 10, "types": ["electric"]}, {"id": 923, "name": "Oranguru", "variation": "", "gen": 7, "tier": 10, "types": ["normal", "psychic"]}, {"id": 35, "name": "Raichu", "variation": "", "gen": 1, "tier": 10, "types": ["electric"]}, {"id": 916, "name": "Salazzle", "variation": "", "gen": 7, "tier": 10, "types": ["poison", "fire"]}, {"id": 801, "name": "Vivillon", "variation": "", "gen": 6, "tier": 10, "types": ["bug", "flying"]}, {"id": 413, "name": "Altaria", "variation": "Mega", "gen": 6, "tier": 9, "types": ["dragon", "fairy"]}, {"id": 12, "name": "Blastoise", "variation": "", "gen": 1, "tier": 9, "types": ["water"]}, {"id": 323, "name": "Blaziken", "variation": "", "gen": 3, "tier": 9, "types": ["fire", "fighting"]}, {"id": 1236, "name": "Chandelure", "variation": "Mega", "gen": 9, "tier": 9, "types": ["ghost", "fire"]}, {"id": 1226, "name": "Chimecho", "variation": "Mega", "gen": 9, "tier": 9, "types": ["psychic", "steel"]}, {"id": 828, "name": "Dragalge", "variation": "", "gen": 6, "tier": 9, "types": ["poison", "dragon"]}, {"id": 1224, "name": "Feraligatr", "variation": "Mega", "gen": 9, "tier": 9, "types": ["water", "dragon"]}, {"id": 1021, "name": "Hatterene", "variation": "", "gen": 8, "tier": 9, "types": ["psychic", "fairy"]}, {"id": 671, "name": "Krookodile", "variation": "", "gen": 5, "tier": 9, "types": ["ground", "dark"]}, {"id": 1243, "name": "Meowstic", "variation": "Mega", "gen": 9, "tier": 9, "types": ["psychic"]}, {"id": 861, "name": "Noivern", "variation": "", "gen": 6, "tier": 9, "types": ["flying", "dragon"]}, {"id": 567, "name": "Rhyperior", "variation": "", "gen": 4, "tier": 9, "types": ["ground", "rock"]}, {"id": 374, "name": "Sableye", "variation": "Mega", "gen": 6, "tier": 9, "types": ["dark", "ghost"]}, {"id": 660, "name": "Scolipede", "variation": "", "gen": 5, "tier": 9, "types": ["bug", "poison"]}, {"id": 327, "name": "Swampert", "variation": "", "gen": 3, "tier": 9, "types": ["water", "ground"]}, {"id": 172, "name": "Tauros", "variation": "Paldea-Blaze", "gen": 1, "tier": 9, "types": ["fighting", "fire"]}, {"id": 564, "name": "Weavile", "variation": "", "gen": 4, "tier": 9, "types": ["dark", "ice"]}, {"id": 696, "name": "Zoroark", "variation": "Hisui", "gen": 5, "tier": 9, "types": ["normal", "ghost"]}, {"id": 380, "name": "Aggron", "variation": "Mega", "gen": 6, "tier": 8, "types": ["steel"]}, {"id": 1115, "name": "Armarouge", "variation": "", "gen": 9, "tier": 8, "types": ["fire", "psychic"]}, {"id": 1116, "name": "Ceruledge", "variation": "", "gen": 9, "tier": 8, "types": ["fire", "ghost"]}, {"id": 1238, "name": "Chesnaught", "variation": "Mega", "gen": 9, "tier": 8, "types": ["grass", "fighting"]}, {"id": 1249, "name": "Crabominable", "variation": "Mega", "gen": 9, "tier": 8, "types": ["fighting", "ice"]}, {"id": 1251, "name": "Drampa", "variation": "Mega", "gen": 9, "tier": 8, "types": ["normal", "dragon"]}, {"id": 1231, "name": "Emboar", "variation": "Mega", "gen": 9, "tier": 8, "types": ["fire", "fighting"]}, {"id": 578, "name": "Gallade", "variation": "", "gen": 4, "tier": 8, "types": ["psychic", "fighting"]}, {"id": 127, "name": "Gengar", "variation": "", "gen": 1, "tier": 8, "types": ["ghost", "poison"]}, {"id": 704, "name": "Reuniclus", "variation": "", "gen": 5, "tier": 8, "types": ["psychic"]}, {"id": 109, "name": "Slowbro", "variation": "Mega", "gen": 6, "tier": 8, "types": ["water", "psychic"]}, {"id": 191, "name": "Snorlax", "variation": "", "gen": 1, "tier": 8, "types": ["normal"]}, {"id": 921, "name": "Tsareena", "variation": "", "gen": 7, "tier": 8, "types": ["grass"]}, {"id": 211, "name": "Typhlosion", "variation": "Hisui", "gen": 2, "tier": 8, "types": ["fire", "ghost"]}, {"id": 709, "name": "Vanilluxe", "variation": "", "gen": 5, "tier": 8, "types": ["ice"]}, {"id": 649, "name": "Conkeldurr", "variation": "", "gen": 5, "tier": 7, "types": ["fighting"]}, {"id": 729, "name": "Eelektross", "variation": "", "gen": 5, "tier": 7, "types": ["electric"]}, {"id": 490, "name": "Empoleon", "variation": "", "gen": 4, "tier": 7, "types": ["water", "steel"]}, {"id": 252, "name": "Espeon", "variation": "", "gen": 2, "tier": 7, "types": ["psychic"]}, {"id": 806, "name": "Florges", "variation": "", "gen": 6, "tier": 7, "types": ["fairy"]}, {"id": 792, "name": "Greninja", "variation": "", "gen": 6, "tier": 7, "types": ["water", "dark"]}, {"id": 838, "name": "Hawlucha", "variation": "", "gen": 6, "tier": 7, "types": ["fighting", "flying"]}, {"id": 275, "name": "Heracross", "variation": "Mega", "gen": 6, "tier": 7, "types": ["bug", "fighting"]}, {"id": 1152, "name": "Houndstone", "variation": "", "gen": 9, "tier": 7, "types": ["ghost"]}, {"id": 487, "name": "Infernape", "variation": "", "gen": 4, "tier": 7, "types": ["fire", "fighting"]}, {"id": 154, "name": "Kangaskhan", "variation": "", "gen": 1, "tier": 7, "types": ["normal"]}, {"id": 382, "name": "Medicham", "variation": "", "gen": 3, "tier": 7, "types": ["fighting", "psychic"]}, {"id": 1148, "name": "Orthworm", "variation": "", "gen": 9, "tier": 7, "types": ["steel"]}, {"id": 24, "name": "Pidgeot", "variation": "Mega", "gen": 6, "tier": 7, "types": ["normal", "flying"]}, {"id": 169, "name": "Pinsir", "variation": "Mega", "gen": 6, "tier": 7, "types": ["bug", "flying"]}, {"id": 396, "name": "Sharpedo", "variation": "Mega", "gen": 6, "tier": 7, "types": ["water", "dark"]}, {"id": 108, "name": "Slowbro", "variation": "", "gen": 1, "tier": 7, "types": ["water", "psychic"]}, {"id": 110, "name": "Slowbro", "variation": "Galar", "gen": 8, "tier": 7, "types": ["poison", "psychic"]}, {"id": 255, "name": "Slowking", "variation": "", "gen": 2, "tier": 7, "types": ["water", "psychic"]}, {"id": 1220, "name": "Victreebel", "variation": "Mega", "gen": 9, "tier": 7, "types": ["grass", "poison"]}, {"id": 1071, "name": "Wyrdeer", "variation": "", "gen": 8, "tier": 7, "types": ["normal", "psychic"]}, {"id": 562, "name": "Abomasnow", "variation": "", "gen": 4, "tier": 6, "types": ["grass", "ice"]}, {"id": 563, "name": "Abomasnow", "variation": "Mega", "gen": 6, "tier": 6, "types": ["grass", "ice"]}, {"id": 820, "name": "Aromatisse", "variation": "", "gen": 6, "tier": 6, "types": ["fairy"]}, {"id": 734, "name": "Chandelure", "variation": "", "gen": 5, "tier": 6, "types": ["ghost", "fire"]}, {"id": 795, "name": "Diggersby", "variation": "", "gen": 6, "tier": 6, "types": ["normal", "ground"]}, {"id": 845, "name": "Goodra", "variation": "Hisui", "gen": 6, "tier": 6, "types": ["steel", "dragon"]}, {"id": 293, "name": "Houndoom", "variation": "Mega", "gen": 6, "tier": 6, "types": ["dark", "fire"]}, {"id": 1207, "name": "Hydrapple", "variation": "", "gen": 9, "tier": 6, "types": ["grass", "dragon"]}, {"id": 1072, "name": "Kleavor", "variation": "", "gen": 8, "tier": 6, "types": ["bug", "rock"]}, {"id": 549, "name": "Lucario", "variation": "", "gen": 4, "tier": 6, "types": ["fighting", "steel"]}, {"id": 810, "name": "Pangoro", "variation": "", "gen": 6, "tier": 6, "types": ["fighting", "dark"]}, {"id": 256, "name": "Slowking", "variation": "Galar", "gen": 8, "tier": 6, "types": ["poison", "psychic"]}, {"id": 542, "name": "Spiritomb", "variation": "", "gen": 4, "tier": 6, "types": ["ghost", "dark"]}, {"id": 266, "name": "Steelix", "variation": "Mega", "gen": 6, "tier": 6, "types": ["steel", "ground"]}, {"id": 695, "name": "Zoroark", "variation": "", "gen": 5, "tier": 6, "types": ["dark"]}, {"id": 86, "name": "Alakazam", "variation": "", "gen": 1, "tier": 5, "types": ["psychic"]}, {"id": 437, "name": "Banette", "variation": "Mega", "gen": 6, "tier": 5, "types": ["ghost"]}, {"id": 20, "name": "Beedrill", "variation": "Mega", "gen": 6, "tier": 5, "types": ["bug", "poison"]}, {"id": 7, "name": "Charizard", "variation": "", "gen": 1, "tier": 5, "types": ["fire", "flying"]}, {"id": 686, "name": "Cofagrigus", "variation": "", "gen": 5, "tier": 5, "types": ["ghost"]}, {"id": 789, "name": "Delphox", "variation": "", "gen": 6, "tier": 5, "types": ["fire", "psychic"]}, {"id": 1135, "name": "Espathra", "variation": "", "gen": 9, "tier": 5, "types": ["psychic"]}, {"id": 1113, "name": "Garganacl", "variation": "", "gen": 9, "tier": 5, "types": ["rock"]}, {"id": 574, "name": "Glaceon", "variation": "", "gen": 4, "tier": 5, "types": ["ice"]}, {"id": 853, "name": "Gourgeist", "variation": "", "gen": 6, "tier": 5, "types": ["ghost", "grass"]}, {"id": 552, "name": "Hippowdon", "variation": "", "gen": 4, "tier": 5, "types": ["ground"]}, {"id": 573, "name": "Leafeon", "variation": "", "gen": 4, "tier": 5, "types": ["grass"]}, {"id": 902, "name": "Lycanroc", "variation": "Dusk", "gen": 7, "tier": 5, "types": ["rock"]}, {"id": 375, "name": "Mawile", "variation": "", "gen": 3, "tier": 5, "types": ["steel", "fairy"]}, {"id": 908, "name": "Mudsdale", "variation": "", "gen": 7, "tier": 5, "types": ["ground"]}, {"id": 1018, "name": "Polteageist", "variation": "", "gen": 8, "tier": 5, "types": ["ghost"]}, {"id": 1088, "name": "Quaquaval", "variation": "", "gen": 9, "tier": 5, "types": ["water", "fighting"]}, {"id": 269, "name": "Qwilfish", "variation": "", "gen": 2, "tier": 5, "types": ["water", "poison"]}, {"id": 36, "name": "Raichu", "variation": "Alola", "gen": 7, "tier": 5, "types": ["electric", "psychic"]}, {"id": 1030, "name": "Runerigus", "variation": "", "gen": 8, "tier": 5, "types": ["ground", "ghost"]}, {"id": 610, "name": "Serperior", "variation": "", "gen": 5, "tier": 5, "types": ["grass"]}, {"id": 1085, "name": "Skeledirge", "variation": "", "gen": 9, "tier": 5, "types": ["fire", "ghost"]}, {"id": 210, "name": "Typhlosion", "variation": "", "gen": 2, "tier": 5, "types": ["fire"]}, {"id": 253, "name": "Umbreon", "variation": "", "gen": 2, "tier": 5, "types": ["dark"]}, {"id": 181, "name": "Vaporeon", "variation": "", "gen": 1, "tier": 5, "types": ["water"]}, {"id": 59, "name": "Vileplume", "variation": "", "gen": 1, "tier": 5, "types": ["grass", "poison"]}, {"id": 443, "name": "Absol", "variation": "Mega", "gen": 6, "tier": 4, "types": ["dark"]}, {"id": 1032, "name": "Alcremie", "variation": "", "gen": 8, "tier": 4, "types": ["fairy"]}, {"id": 236, "name": "Ampharos", "variation": "Mega", "gen": 6, "tier": 4, "types": ["electric", "dragon"]}, {"id": 1118, "name": "Bellibolt", "variation": "", "gen": 9, "tier": 4, "types": ["electric"]}, {"id": 786, "name": "Chesnaught", "variation": "", "gen": 6, "tier": 4, "types": ["grass", "fighting"]}, {"id": 830, "name": "Clawitzer", "variation": "", "gen": 6, "tier": 4, "types": ["water"]}, {"id": 875, "name": "Decidueye", "variation": "Hisui", "gen": 7, "tier": 4, "types": ["grass", "fighting"]}, {"id": 178, "name": "Ditto", "variation": "", "gen": 1, "tier": 4, "types": ["normal"]}, {"id": 582, "name": "Froslass", "variation": "", "gen": 4, "tier": 4, "types": ["ice", "ghost"]}, {"id": 447, "name": "Glalie", "variation": "Mega", "gen": 6, "tier": 4, "types": ["ice"]}, {"id": 749, "name": "Golurk", "variation": "", "gen": 5, "tier": 4, "types": ["ground", "ghost"]}, {"id": 844, "name": "Goodra", "variation": "", "gen": 6, "tier": 4, "types": ["dragon"]}, {"id": 832, "name": "Heliolisk", "variation": "", "gen": 6, "tier": 4, "types": ["electric", "normal"]}, {"id": 182, "name": "Jolteon", "variation": "", "gen": 1, "tier": 4, "types": ["electric"]}, {"id": 500, "name": "Luxray", "variation": "", "gen": 4, "tier": 4, "types": ["electric"]}, {"id": 90, "name": "Machamp", "variation": "", "gen": 1, "tier": 4, "types": ["fighting"]}, {"id": 824, "name": "Malamar", "variation": "", "gen": 6, "tier": 4, "types": ["dark", "psychic"]}, {"id": 632, "name": "Musharna", "variation": "", "gen": 5, "tier": 4, "types": ["psychic"]}, {"id": 803, "name": "Pyroar", "variation": "", "gen": 6, "tier": 4, "types": ["fire", "normal"]}, {"id": 504, "name": "Rampardos", "variation": "", "gen": 4, "tier": 4, "types": ["rock"]}, {"id": 502, "name": "Roserade", "variation": "", "gen": 4, "tier": 4, "types": ["grass", "poison"]}, {"id": 586, "name": "Rotom", "variation": "Frost", "gen": 4, "tier": 4, "types": ["electric", "ice"]}, {"id": 617, "name": "Samurott", "variation": "Hisui", "gen": 5, "tier": 4, "types": ["water", "dark"]}, {"id": 319, "name": "Sceptile", "variation": "", "gen": 3, "tier": 4, "types": ["grass"]}, {"id": 161, "name": "Starmie", "variation": "", "gen": 1, "tier": 4, "types": ["water", "psychic"]}, {"id": 484, "name": "Torterra", "variation": "", "gen": 4, "tier": 4, "types": ["grass", "ground"]}, {"id": 556, "name": "Toxicroak", "variation": "", "gen": 4, "tier": 4, "types": ["poison", "fighting"]}, {"id": 834, "name": "Tyrantrum", "variation": "", "gen": 6, "tier": 4, "types": ["rock", "dragon"]}, {"id": 645, "name": "Audino", "variation": "", "gen": 5, "tier": 3, "types": ["normal"]}, {"id": 646, "name": "Audino", "variation": "Mega", "gen": 6, "tier": 3, "types": ["normal", "fairy"]}, {"id": 836, "name": "Aurorus", "variation": "", "gen": 6, "tier": 3, "types": ["rock", "ice"]}, {"id": 739, "name": "Beartic", "variation": "", "gen": 5, "tier": 3, "types": ["ice"]}, {"id": 891, "name": "Crabominable", "variation": "", "gen": 7, "tier": 3, "types": ["fighting", "ice"]}, {"id": 874, "name": "Decidueye", "variation": "", "gen": 7, "tier": 3, "types": ["grass", "ghost"]}, {"id": 939, "name": "Drampa", "variation": "", "gen": 7, "tier": 3, "types": ["normal", "dragon"]}, {"id": 613, "name": "Emboar", "variation": "", "gen": 5, "tier": 3, "types": ["fire", "fighting"]}, {"id": 214, "name": "Feraligatr", "variation": "", "gen": 2, "tier": 3, "types": ["water"]}, {"id": 1003, "name": "Flapple", "variation": "", "gen": 8, "tier": 3, "types": ["grass", "dragon"]}, {"id": 183, "name": "Flareon", "variation": "", "gen": 1, "tier": 3, "types": ["fire"]}, {"id": 575, "name": "Gliscor", "variation": "", "gen": 4, "tier": 3, "types": ["ground", "flying"]}, {"id": 274, "name": "Heracross", "variation": "", "gen": 2, "tier": 3, "types": ["bug", "fighting"]}, {"id": 900, "name": "Lycanroc", "variation": "", "gen": 7, "tier": 3, "types": ["rock"]}, {"id": 1029, "name": "Mr. Rime", "variation": "", "gen": 8, "tier": 3, "types": ["ice", "psychic"]}, {"id": 924, "name": "Passimian", "variation": "", "gen": 7, "tier": 3, "types": ["fighting"]}, {"id": 1131, "name": "Scovillain", "variation": "", "gen": 9, "tier": 3, "types": ["grass", "fire"]}, {"id": 290, "name": "Skarmory", "variation": "", "gen": 2, "tier": 3, "types": ["steel", "flying"]}, {"id": 171, "name": "Tauros", "variation": "Paldea-Combat", "gen": 1, "tier": 3, "types": ["fighting"]}, {"id": 906, "name": "Toxapex", "variation": "", "gen": 7, "tier": 3, "types": ["poison", "water"]}, {"id": 848, "name": "Trevenant", "variation": "", "gen": 6, "tier": 3, "types": ["ghost", "grass"]}, {"id": 93, "name": "Victreebel", "variation": "", "gen": 1, "tier": 3, "types": ["grass", "poison"]}, {"id": 379, "name": "Aggron", "variation": "", "gen": 3, "tier": 2, "types": ["steel", "rock"]}, {"id": 32, "name": "Arbok", "variation": "", "gen": 1, "tier": 2, "types": ["poison"]}, {"id": 222, "name": "Ariados", "variation": "", "gen": 2, "tier": 2, "types": ["bug", "poison"]}, {"id": 826, "name": "Barbaracle", "variation": "", "gen": 6, "tier": 2, "types": ["rock", "water"]}, {"id": 506, "name": "Bastiodon", "variation": "", "gen": 4, "tier": 2, "types": ["rock", "steel"]}, {"id": 1033, "name": "Falinks", "variation": "", "gen": 8, "tier": 2, "types": ["fighting"]}, {"id": 814, "name": "Meowstic", "variation": "F", "gen": 6, "tier": 2, "types": ["psychic"]}, {"id": 1042, "name": "Morpeko", "variation": "", "gen": 8, "tier": 2, "types": ["electric", "dark"]}, {"id": 583, "name": "Rotom", "variation": "", "gen": 4, "tier": 2, "types": ["electric", "ghost"]}, {"id": 587, "name": "Rotom", "variation": "Fan", "gen": 4, "tier": 2, "types": ["electric", "flying"]}, {"id": 1006, "name": "Sandaconda", "variation": "", "gen": 8, "tier": 2, "types": ["ground"]}, {"id": 395, "name": "Sharpedo", "variation": "", "gen": 3, "tier": 2, "types": ["water", "dark"]}, {"id": 822, "name": "Slurpuff", "variation": "", "gen": 6, "tier": 2, "types": ["fairy"]}, {"id": 265, "name": "Steelix", "variation": "", "gen": 2, "tier": 2, "types": ["steel", "ground"]}, {"id": 170, "name": "Tauros", "variation": "", "gen": 1, "tier": 2, "types": ["normal"]}, {"id": 442, "name": "Absol", "variation": "", "gen": 3, "tier": 1, "types": ["dark"]}, {"id": 412, "name": "Altaria", "variation": "", "gen": 3, "tier": 1, "types": ["dragon", "flying"]}, {"id": 235, "name": "Ampharos", "variation": "", "gen": 2, "tier": 1, "types": ["electric"]}, {"id": 1004, "name": "Appletun", "variation": "", "gen": 8, "tier": 1, "types": ["grass", "dragon"]}, {"id": 858, "name": "Avalugg", "variation": "", "gen": 6, "tier": 1, "types": ["ice"]}, {"id": 859, "name": "Avalugg", "variation": "Hisui", "gen": 6, "tier": 1, "types": ["ice", "rock"]}, {"id": 436, "name": "Banette", "variation": "", "gen": 3, "tier": 1, "types": ["ghost"]}, {"id": 19, "name": "Beedrill", "variation": "", "gen": 1, "tier": 1, "types": ["bug", "poison"]}, {"id": 400, "name": "Camerupt", "variation": "", "gen": 3, "tier": 1, "types": ["fire", "ground"]}, {"id": 430, "name": "Castform", "variation": "", "gen": 3, "tier": 1, "types": ["normal"]}, {"id": 441, "name": "Chimecho", "variation": "", "gen": 3, "tier": 1, "types": ["psychic"]}, {"id": 839, "name": "Dedenne", "variation": "", "gen": 6, "tier": 1, "types": ["electric", "fairy"]}, {"id": 712, "name": "Emolga", "variation": "", "gen": 5, "tier": 1, "types": ["electric", "flying"]}, {"id": 262, "name": "Forretress", "variation": "", "gen": 2, "tier": 1, "types": ["bug", "steel"]}, {"id": 811, "name": "Furfrou", "variation": "", "gen": 6, "tier": 1, "types": ["normal"]}, {"id": 692, "name": "Garbodor", "variation": "", "gen": 5, "tier": 1, "types": ["poison"]}, {"id": 446, "name": "Glalie", "variation": "", "gen": 3, "tier": 1, "types": ["ice"]}, {"id": 292, "name": "Houndoom", "variation": "", "gen": 2, "tier": 1, "types": ["dark", "fire"]}, {"id": 527, "name": "Lopunny", "variation": "", "gen": 4, "tier": 1, "types": ["normal"]}, {"id": 901, "name": "Lycanroc", "variation": "Midnight", "gen": 7, "tier": 1, "types": ["rock"]}, {"id": 385, "name": "Manectric", "variation": "", "gen": 3, "tier": 1, "types": ["electric"]}, {"id": 207, "name": "Meganium", "variation": "", "gen": 2, "tier": 1, "types": ["grass"]}, {"id": 23, "name": "Pidgeot", "variation": "", "gen": 1, "tier": 1, "types": ["normal", "flying"]}, {"id": 33, "name": "Pikachu", "variation": "", "gen": 1, "tier": 1, "types": ["electric"]}, {"id": 168, "name": "Pinsir", "variation": "", "gen": 1, "tier": 1, "types": ["bug"]}, {"id": 616, "name": "Samurott", "variation": "", "gen": 5, "tier": 1, "types": ["water"]}, {"id": 630, "name": "Simipour", "variation": "", "gen": 5, "tier": 1, "types": ["water"]}, {"id": 626, "name": "Simisage", "variation": "", "gen": 5, "tier": 1, "types": ["grass"]}, {"id": 628, "name": "Simisear", "variation": "", "gen": 5, "tier": 1, "types": ["fire"]}, {"id": 743, "name": "Stunfisk", "variation": "", "gen": 5, "tier": 1, "types": ["ground", "electric"]}, {"id": 744, "name": "Stunfisk", "variation": "Galar", "gen": 8, "tier": 1, "types": ["ground", "steel"]}, {"id": 884, "name": "Toucannon", "variation": "", "gen": 7, "tier": 1, "types": ["normal", "flying"]}, {"id": 619, "name": "Watchog", "variation": "", "gen": 5, "tier": 1, "types": ["normal"]}];
+
+// ---------- state ----------
+let state = null; // set on start
+const els = {
+  numTrainers: document.getElementById('numTrainers'),
+  numSlots: document.getElementById('numSlots'),
+  budget: document.getElementById('budget'),
+  orderMode: document.getElementById('orderMode'),
+  seasonName: document.getElementById('seasonName'),
+  trainerNameGrid: document.getElementById('trainerNameGrid'),
+  startBtn: document.getElementById('startBtn'),
+  importBtn: document.getElementById('importBtn'),
+  importArea: document.getElementById('importArea'),
+  setupPanel: document.getElementById('setupPanel'),
+  statusBar: document.getElementById('statusBar'),
+  draftLayout: document.getElementById('draftLayout'),
+  completePanel: document.getElementById('completePanel'),
+  roundLabel: document.getElementById('roundLabel'),
+  onClockName: document.getElementById('onClockName'),
+  onClockPoints: document.getElementById('onClockPoints'),
+  pickCounter: document.getElementById('pickCounter'),
+  undoBtn: document.getElementById('undoBtn'),
+  exportBtn: document.getElementById('exportBtn'),
+  exportBtn2: document.getElementById('exportBtn2'),
+  resetBtn: document.getElementById('resetBtn'),
+  rosters: document.getElementById('rosters'),
+  searchBox: document.getElementById('searchBox'),
+  tierFilter: document.getElementById('tierFilter'),
+  typeFilter: document.getElementById('typeFilter'),
+  sortMode: document.getElementById('sortMode'),
+  showDrafted: document.getElementById('showDrafted'),
+  poolBody: document.getElementById('poolBody'),
+  poolCount: document.getElementById('poolCount'),
+};
+
+// populate number selects
+for(let i=2;i<=10;i++){
+  let o1=document.createElement('option'); o1.value=i; o1.textContent=i; if(i===10) o1.selected=true;
+  els.numTrainers.appendChild(o1);
+}
+for(let i=1;i<=15;i++){
+  let o2=document.createElement('option'); o2.value=i; o2.textContent=i; if(i===10) o2.selected=true;
+  els.numSlots.appendChild(o2);
+}
+
+function renderNameInputs(){
+  const n = parseInt(els.numTrainers.value,10);
+  els.trainerNameGrid.innerHTML='';
+  for(let i=1;i<=n;i++){
+    const inp = document.createElement('input');
+    inp.type='text';
+    inp.placeholder='Trainer '+i;
+    inp.dataset.idx = i;
+    els.trainerNameGrid.appendChild(inp);
+  }
+}
+renderNameInputs();
+els.numTrainers.addEventListener('change', renderNameInputs);
+
+function buildSnakeOrder(numTrainers, numSlots){
+  const order = [];
+  for(let round=0; round<numSlots; round++){
+    const seq = [];
+    for(let t=0;t<numTrainers;t++) seq.push(t);
+    if(round % 2 === 1) seq.reverse();
+    order.push(...seq);
+  }
+  return order;
+}
+
+function startDraft(){
+  const numTrainers = parseInt(els.numTrainers.value,10);
+  const numSlots = parseInt(els.numSlots.value,10);
+  const budget = parseInt(els.budget.value,10) || 100;
+  const seasonName = els.seasonName.value.trim() || ('Season saved ' + new Date().toLocaleDateString());
+
+  let names = Array.from(els.trainerNameGrid.querySelectorAll('input')).map((inp,i)=> inp.value.trim() || ('Trainer '+(i+1)));
+
+  if(els.orderMode.value === 'random'){
+    for(let i=names.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [names[i],names[j]]=[names[j],names[i]];
+    }
+  }
+
+  if(window.FIREBASE_READY){
+    window.liveCreateSession({ seasonName, numTrainers, numSlots, budget, names });
+    return;
+  }
+
+  const trainers = names.map(name => ({name, budget, roster: []}));
+  const pickOrder = buildSnakeOrder(numTrainers, numSlots);
+
+  state = {
+    seasonName,
+    numTrainers, numSlots, budgetStart: budget,
+    trainers,
+    pickOrder,
+    currentPick: 0,
+    draftedIds: {}, // id -> {trainerIdx, tier}
+    history: [], // for undo: {trainerIdx, mon}
+    pickStartedAt: Date.now()
+  };
+
+  els.setupPanel.style.display='none';
+  els.statusBar.classList.remove('hidden');
+  els.draftLayout.style.display='block';
+  els.completePanel.style.display='none';
+
+  populateTierFilter();
+  renderAll();
+}
+
+function populateTierFilter(){
+  const tiers = Array.from(new Set(POOL.map(p=>p.tier))).sort((a,b)=>b-a);
+  els.tierFilter.innerHTML = '<option value="all">All tiers</option>';
+  tiers.forEach(t=>{
+    const o = document.createElement('option');
+    o.value=t; o.textContent='Tier '+t;
+    els.tierFilter.appendChild(o);
+  });
+
+  const typesUsed = Array.from(new Set(POOL.flatMap(p=>p.types||[]))).sort();
+  els.typeFilter.innerHTML = '<option value="all">All types</option>';
+  typesUsed.forEach(t=>{
+    const o = document.createElement('option');
+    o.value=t; o.textContent=t.charAt(0).toUpperCase()+t.slice(1);
+    els.typeFilter.appendChild(o);
+  });
+}
+
+function isDraftDone(){
+  return state.currentPick >= state.pickOrder.length;
+}
+
+function currentTrainerIdx(){
+  return state.pickOrder[state.currentPick];
+}
+
+function renderStatusBar(){
+  if(isDraftDone()){
+    els.statusBar.classList.add('hidden');
+    els.draftLayout.style.display='none';
+    els.completePanel.style.display='block';
+    document.getElementById('completeSeasonName').textContent = state.seasonName || '';
+    return;
+  }
+  els.statusBar.classList.remove('hidden');
+  const tIdx = currentTrainerIdx();
+  const trainer = state.trainers[tIdx];
+  const round = Math.floor(state.currentPick / state.numTrainers) + 1;
+  els.roundLabel.textContent = 'Round '+round+' of '+state.numSlots;
+  els.onClockName.textContent = trainer.name;
+  els.onClockPoints.textContent = trainer.budget + ' pts';
+  els.pickCounter.textContent = (state.currentPick+1)+' / '+state.pickOrder.length;
+}
+
+function renderRosters(){
+  els.rosters.innerHTML='';
+  state.trainers.forEach((trainer, idx)=>{
+    const card = document.createElement('div');
+    card.className='trainer-card' + (!isDraftDone() && idx===currentTrainerIdx() ? ' active':'') + (trainer.roster.length>=state.numSlots?' full':'');
+
+    const head = document.createElement('div');
+    head.className='trainer-head';
+    const avatarHtml = trainer.avatar
+      ? '<img class="avatar-thumb" src="'+trainer.avatar+'" alt="">'
+      : '<span class="avatar-thumb-placeholder"></span>';
+    head.innerHTML = '<span style="display:flex;align-items:center;gap:8px;min-width:0;">'+avatarHtml+'<span class="t-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHtml(trainer.name)+'</span></span><span class="t-budget">'+trainer.budget+' pts</span>';
+    card.appendChild(head);
+
+    const slotsLine = document.createElement('div');
+    slotsLine.className='trainer-slots';
+    slotsLine.textContent = trainer.roster.length+' / '+state.numSlots+' slots filled';
+    card.appendChild(slotsLine);
+
+    const ul = document.createElement('ul');
+    ul.className='picks-list';
+    for(let i=0;i<state.numSlots;i++){
+      const li = document.createElement('li');
+      li.className = 'pick-line';
+      if(trainer.roster[i]){
+        const mon = trainer.roster[i];
+        li.appendChild(makeSpriteImg(mon, 'roster-sprite'));
+        const textSpan = document.createElement('span');
+        textSpan.className = 'pick-text';
+        const dots = (mon.types||[]).map(t=>'<span title="'+escapeHtml(t)+'" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(TYPE_COLORS[t]||'#888')+';margin-left:4px;"></span>').join('');
+        textSpan.innerHTML = '<span>'+escapeHtml(mon.name)+(mon.variation?' <span style="color:var(--teal-bright);font-family:var(--mono);font-size:11px;">'+escapeHtml(mon.variation)+'</span>':'')+dots+'</span><span class="p-tier">'+mon.tier+'</span>';
+        li.appendChild(textSpan);
+      } else {
+        li.className='empty-slot';
+        li.textContent = 'Open slot';
+      }
+      ul.appendChild(li);
+    }
+    card.appendChild(ul);
+    els.rosters.appendChild(card);
+  });
+}
+
+// ---------- auto-pick (used when the 60s clock runs out) ----------
+function pickAutoMon(draftedIds, budget, remainingSlotsAfterThisPick){
+  const reserve = Math.max(0, remainingSlotsAfterThisPick);
+  let candidates = POOL.filter(p => !draftedIds[p.id] && p.tier <= Math.max(1, budget - reserve));
+  if(candidates.length === 0){
+    candidates = POOL.filter(p => !draftedIds[p.id] && p.tier <= budget);
+  }
+  if(candidates.length === 0){
+    candidates = POOL.filter(p => !draftedIds[p.id]).sort((a,b)=>a.tier-b.tier);
+    return candidates[0] || null;
+  }
+  candidates.sort((a,b)=> b.tier - a.tier || a.name.localeCompare(b.name));
+  return candidates[0];
+}
+window.pickAutoMon = pickAutoMon;
+
+// ---------- sprites ----------
+const PLACEHOLDER_SPRITE = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="#3A4A46" stroke-width="2"/><line x1="3" y1="20" x2="37" y2="20" stroke="#3A4A46" stroke-width="2"/><circle cx="20" cy="20" r="5" fill="#3A4A46"/></svg>'
+);
+
+function kebab(s){
+  return String(s||'')
+    .toLowerCase()
+    .replace(/['".]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+}
+
+// PokemonDB (img.pokemondb.net) uses adjectival regional names in its slugs
+const REGIONAL_SLUG_MAP = { alola: 'alolan', galar: 'galarian', hisui: 'hisuian' };
+
+function spriteCandidates(mon){
+  const base = kebab(mon.name);
+  const slugs = [];
+  if(mon.variation){
+    const vLower = mon.variation.toLowerCase();
+    const mapped = REGIONAL_SLUG_MAP[vLower];
+    const vSlug = kebab(mon.variation);
+    if(mapped) slugs.push(base + '-' + mapped);
+    slugs.push(base + '-' + vSlug);
+  } else {
+    slugs.push(base);
+  }
+  const urls = [];
+  slugs.forEach(s => urls.push('https://img.pokemondb.net/sprites/scarlet-violet/icon/' + s + '.png'));
+  slugs.forEach(s => urls.push('https://img.pokemondb.net/sprites/home/normal/2x/' + s + '.jpg'));
+  // base-form fallback with no variation, in case the specific form sprite doesn't exist
+  if(mon.variation){
+    urls.push('https://img.pokemondb.net/sprites/scarlet-violet/icon/' + base + '.png');
+  }
+  return urls;
+}
+
+function makeSpriteImg(mon, cssClass){
+  const candidates = spriteCandidates(mon);
+  const img = document.createElement('img');
+  img.className = cssClass;
+  img.alt = '';
+  img.loading = 'lazy';
+  img.src = candidates[0];
+  let idx = 0;
+  img.addEventListener('error', function(){
+    idx++;
+    if(idx < candidates.length){
+      img.src = candidates[idx];
+    } else {
+      img.onerror = null;
+      img.src = PLACEHOLDER_SPRITE;
+      img.style.opacity = '0.4';
+    }
+  });
+  return img;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ---------- Pokémon type colors ----------
+const TYPE_COLORS = {
+  normal:'#A8A878', fire:'#F08030', water:'#6890F0', electric:'#F8D030',
+  grass:'#78C850', ice:'#98D8D8', fighting:'#C03028', poison:'#A040A0',
+  ground:'#E0C068', flying:'#A890F0', psychic:'#F85888', bug:'#A8B820',
+  rock:'#B8A038', ghost:'#705898', dragon:'#7038F8', dark:'#705848',
+  steel:'#B8B8D0', fairy:'#EE99AC'
+};
+function textColorFor(hex){
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  const luminance = (0.299*r + 0.587*g + 0.114*b) / 255;
+  return luminance > 0.6 ? '#111' : '#fff';
+}
+function typeBadgesHtml(types){
+  return (types||[]).map(t=>{
+    const bg = TYPE_COLORS[t] || '#888';
+    const fg = textColorFor(bg);
+    return '<span class="type-badge" style="background:'+bg+';color:'+fg+';">'+escapeHtml(t)+'</span>';
+  }).join('');
+}
+
+// ---------- dramatic pick reveal ----------
+// ---------- draft pick sound (your own audio file: draft-pick.mp3) ----------
+let soundEnabled = localStorage.getItem('vgcSoundEnabled') !== 'false';
+const DRAFT_SOUND_SRC = 'draft-pick.mp3';
+
+// Browsers block audio playback until a user interacts with the page at all.
+// We quietly "prime" a muted play/pause on the very first click anywhere so
+// later programmatic plays work — including reveals triggered by someone
+// else's pick in a live session, not just your own clicks.
+document.addEventListener('click', function unlockAudioOnce(){
+  try{
+    const primer = new Audio(DRAFT_SOUND_SRC);
+    primer.volume = 0;
+    primer.play().then(()=> primer.pause()).catch(()=>{});
+  }catch(e){}
+  document.removeEventListener('click', unlockAudioOnce);
+}, { once: true });
+
+function playDraftChime(){
+  if(!soundEnabled) return;
+  try{
+    const audio = new Audio(DRAFT_SOUND_SRC);
+    audio.volume = 0.9;
+    audio.play().catch(()=>{ /* blocked until a user gesture unlocks it — safe to ignore */ });
+  }catch(e){ /* audio not available in this browser — fail silently */ }
+}
+
+function updateSoundToggleUI(){
+  const btn = document.getElementById('soundToggleBtn');
+  if(btn) btn.textContent = soundEnabled ? '🔊' : '🔇';
+}
+
+let pickRevealTimer = null;
+const prEls = {
+  overlay: document.getElementById('pickReveal'),
+  burst: document.getElementById('prBurst'),
+  trainer: document.getElementById('prTrainer'),
+  sprite: document.getElementById('prSprite'),
+  name: document.getElementById('prName'),
+  types: document.getElementById('prTypes'),
+  tier: document.getElementById('prTier'),
+};
+
+function showPickReveal(trainerName, mon, isAuto){
+  if(!mon || !prEls.overlay) return;
+
+  playDraftChime();
+  prEls.trainer.textContent = (isAuto ? 'Clock expired — auto-drafted for ' : '') + trainerName + (isAuto ? '' : ' selects');
+  const candidates = spriteCandidates(mon);
+  let idx = 0;
+  prEls.sprite.style.display = '';
+  prEls.sprite.src = candidates[0];
+  prEls.sprite.onerror = function(){
+    idx++;
+    if(idx < candidates.length){ prEls.sprite.src = candidates[idx]; }
+    else { prEls.sprite.style.display = 'none'; }
+  };
+  prEls.name.innerHTML = escapeHtml(mon.name) + (mon.variation ? ' <span class="pr-var">'+escapeHtml(mon.variation)+'</span>' : '');
+  prEls.types.innerHTML = typeBadgesHtml(mon.types);
+  prEls.tier.textContent = mon.tier + ' PT' + (mon.tier===1?'':'S');
+
+  // Restart the burst animation from scratch even if it's already mid-flight.
+  prEls.burst.classList.remove('flash');
+  void prEls.burst.offsetWidth;
+  prEls.burst.classList.add('flash');
+
+  prEls.overlay.classList.add('show');
+  clearTimeout(pickRevealTimer);
+  pickRevealTimer = setTimeout(()=> prEls.overlay.classList.remove('show'), 2800);
+}
+
+if(prEls.overlay){
+  prEls.overlay.addEventListener('click', function(){
+    this.classList.remove('show');
+    clearTimeout(pickRevealTimer);
+  });
+}
+
+function renderPool(){
+  const search = els.searchBox.value.trim().toLowerCase();
+  const tierVal = els.tierFilter.value;
+  const typeVal = els.typeFilter.value;
+  const showDrafted = els.showDrafted.checked;
+  const sortMode = els.sortMode.value;
+
+  let list = POOL.filter(p=>{
+    if(!showDrafted && state.draftedIds[p.id]) return false;
+    if(tierVal!=='all' && p.tier !== parseInt(tierVal,10)) return false;
+    if(typeVal!=='all' && !(p.types||[]).includes(typeVal)) return false;
+    if(search){
+      const hay = (p.name+' '+p.variation).toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  list.sort((a,b)=>{
+    if(sortMode==='tierDesc') return b.tier - a.tier || a.name.localeCompare(b.name);
+    if(sortMode==='tierAsc') return a.tier - b.tier || a.name.localeCompare(b.name);
+    return a.name.localeCompare(b.name);
+  });
+
+  els.poolCount.textContent = list.length + ' shown';
+
+  els.poolBody.innerHTML='';
+  if(list.length===0){
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td colspan="4" class="empty-state">No Pokémon match those filters.</td>';
+    els.poolBody.appendChild(tr);
+    return;
+  }
+
+  const done = isDraftDone();
+  const trainer = done ? null : state.trainers[currentTrainerIdx()];
+
+  list.forEach(p=>{
+    const drafted = !!state.draftedIds[p.id];
+    const tr = document.createElement('tr');
+    if(drafted) tr.classList.add('drafted');
+
+    const spriteCell = document.createElement('td');
+    spriteCell.className = 'sprite-cell';
+    spriteCell.appendChild(makeSpriteImg(p, 'sprite-img'));
+    tr.appendChild(spriteCell);
+
+    const nameCell = document.createElement('td');
+    nameCell.innerHTML = '<span class="mon-name">'+escapeHtml(p.name)+'</span>'+(p.variation?'<span class="mon-var">'+escapeHtml(p.variation)+'</span>':'');
+    tr.appendChild(nameCell);
+
+    const typeCell = document.createElement('td');
+    typeCell.innerHTML = '<div class="type-badges">'+typeBadgesHtml(p.types)+'</div>';
+    tr.appendChild(typeCell);
+
+    const genCell = document.createElement('td');
+    genCell.textContent = 'Gen '+p.gen;
+    genCell.style.color='var(--cream-dim)';
+    genCell.style.fontFamily='var(--mono)';
+    genCell.style.fontSize='12px';
+    tr.appendChild(genCell);
+
+    const tierCell = document.createElement('td');
+    tierCell.innerHTML = '<span class="tier-chip">'+p.tier+'</span>';
+    tr.appendChild(tierCell);
+
+    const actionCell = document.createElement('td');
+    if(drafted){
+      const who = state.trainers[state.draftedIds[p.id].trainerIdx];
+      const span = document.createElement('span');
+      span.style.fontFamily='var(--mono)';
+      span.style.fontSize='11px';
+      span.style.color='var(--cream-dim)';
+      span.textContent = 'Drafted — '+who.name;
+      actionCell.appendChild(span);
+    } else if(!done){
+      const btn = document.createElement('button');
+      btn.className='btn btn-primary btn-sm';
+      const canAfford = trainer.budget >= p.tier;
+      const hasSlot = trainer.roster.length < state.numSlots;
+      const live = window.LIVE && window.LIVE.sessionId;
+      const isMyTurn = !live || (window.LIVE.myTrainerIdx === currentTrainerIdx());
+      btn.textContent = live && !isMyTurn ? 'Not your turn' : 'Draft';
+      btn.disabled = !(canAfford && hasSlot && isMyTurn);
+      btn.title = !hasSlot ? 'Roster full' : (!canAfford ? 'Not enough points' : (!isMyTurn ? 'Waiting for '+trainer.name+' to pick' : ''));
+      btn.addEventListener('click', ()=> draftPokemon(p));
+      actionCell.appendChild(btn);
+    }
+    tr.appendChild(actionCell);
+    els.poolBody.appendChild(tr);
+  });
+}
+
+function draftPokemon(p){
+  if(window.LIVE && window.LIVE.sessionId){
+    window.liveDraftPick(p);
+    return;
+  }
+  if(isDraftDone()) return;
+  const tIdx = currentTrainerIdx();
+  const trainer = state.trainers[tIdx];
+  if(state.draftedIds[p.id]) return;
+  if(trainer.budget < p.tier) return;
+  if(trainer.roster.length >= state.numSlots) return;
+
+  trainer.roster.push(p);
+  trainer.budget -= p.tier;
+  state.draftedIds[p.id] = {trainerIdx: tIdx, tier: p.tier};
+  state.history.push({trainerIdx: tIdx, monId: p.id});
+  state.currentPick += 1;
+  state.pickStartedAt = Date.now();
+
+  renderAll();
+  showPickReveal(trainer.name, p, false);
+}
+
+function autoAdvanceLocal(){
+  if(!state || isDraftDone()) return;
+  const tIdx = currentTrainerIdx();
+  const trainer = state.trainers[tIdx];
+  const remainingSlotsAfter = state.numSlots - (trainer.roster.length + 1);
+  const mon = pickAutoMon(state.draftedIds, trainer.budget, remainingSlotsAfter);
+  if(!mon){ state.pickStartedAt = Date.now(); renderAll(); return; }
+
+  trainer.roster.push(mon);
+  trainer.budget -= mon.tier;
+  state.draftedIds[mon.id] = {trainerIdx: tIdx, tier: mon.tier};
+  state.history.push({trainerIdx: tIdx, monId: mon.id, auto: true});
+  state.currentPick += 1;
+  state.pickStartedAt = Date.now();
+
+  renderAll();
+  showPickReveal(trainer.name, mon, true);
+}
+
+function undoPick(){
+  if(window.LIVE && window.LIVE.sessionId){
+    if(window.LIVE.clientId !== window.LIVE.hostId){
+      alert('Only the trainer who started this draft can undo a pick.');
+      return;
+    }
+    window.liveUndoPick();
+    return;
+  }
+  if(state.history.length===0) return;
+  const last = state.history.pop();
+  const trainer = state.trainers[last.trainerIdx];
+  const idxInRoster = trainer.roster.findIndex(m=>m.id===last.monId);
+  if(idxInRoster>-1){
+    const mon = trainer.roster.splice(idxInRoster,1)[0];
+    trainer.budget += mon.tier;
+  }
+  delete state.draftedIds[last.monId];
+  state.currentPick -= 1;
+  state.pickStartedAt = Date.now();
+  renderAll();
+}
+
+function resetDraft(){
+  if(window.LIVE && window.LIVE.sessionId){
+    if(!confirm('Leave this draft session? This browser will go back to the setup screen — the session itself stays saved and other trainers can keep using it.')) return;
+    window.location.href = window.location.pathname;
+    return;
+  }
+  if(!confirm('Start a new draft? This clears the current picks from view (already-saved results stay in the database).')) return;
+  state = null;
+  els.seasonName.value = '';
+  renderNameInputs();
+  els.setupPanel.style.display='block';
+  els.statusBar.classList.add('hidden');
+  els.draftLayout.style.display='none';
+  els.completePanel.style.display='none';
+  document.getElementById('saveDbStatus').textContent = '';
+  const saveBtn = document.getElementById('saveDbBtn');
+  saveBtn.disabled = false;
+  saveBtn.textContent = 'Save results to site';
+}
+
+function exportDraft(){
+  const data = JSON.stringify(state);
+  navigator.clipboard.writeText(data).then(()=>{
+    alert('Draft copied to clipboard. Paste it into a text file to save, or straight into "Load saved draft" next time.');
+  }).catch(()=>{
+    prompt('Copy this draft snapshot:', data);
+  });
+}
+
+function loadImport(){
+  if(els.importArea.style.display==='none'){
+    els.importArea.style.display='block';
+    return;
+  }
+  const raw = els.importArea.value.trim();
+  if(!raw) return;
+  try{
+    const loaded = JSON.parse(raw);
+    state = loaded;
+    els.setupPanel.style.display='none';
+    els.statusBar.classList.remove('hidden');
+    els.draftLayout.style.display='block';
+    els.completePanel.style.display='none';
+    populateTierFilter();
+    renderAll();
+  }catch(e){
+    alert('That did not look like a valid draft export. Double check you pasted the whole snapshot.');
+  }
+}
+
+function renderAll(){
+  renderStatusBar();
+  renderRosters();
+  renderPool();
+}
+
+els.startBtn.addEventListener('click', startDraft);
+els.importBtn.addEventListener('click', loadImport);
+els.undoBtn.addEventListener('click', undoPick);
+els.resetBtn.addEventListener('click', resetDraft);
+document.getElementById('newDraftBtn').addEventListener('click', resetDraft);
+els.exportBtn.addEventListener('click', exportDraft);
+els.exportBtn2.addEventListener('click', exportDraft);
+els.searchBox.addEventListener('input', renderPool);
+els.tierFilter.addEventListener('change', renderPool);
+els.typeFilter.addEventListener('change', renderPool);
+els.sortMode.addEventListener('change', renderPool);
+els.showDrafted.addEventListener('change', renderPool);
+
+// ---------- pick clock (60s per pick, synced via pickStartedAt) ----------
+const PICK_SECONDS = 60;
+const pickTimerEl = document.getElementById('pickTimer');
+
+function tickClock(){
+  if(window.LIVE && window.LIVE.sessionId && state && state.status === 'waiting'){
+    tickWaitingCountdown();
+    return;
+  }
+  if(!state || isDraftDone() || !state.pickStartedAt){
+    pickTimerEl.textContent = '—';
+    pickTimerEl.classList.remove('urgent');
+    return;
+  }
+  const elapsed = Math.floor((Date.now() - state.pickStartedAt) / 1000);
+  const remaining = Math.max(0, PICK_SECONDS - elapsed);
+  pickTimerEl.textContent = remaining + 's';
+  pickTimerEl.classList.toggle('urgent', remaining <= 10);
+
+  if(remaining <= 0){
+    if(window.LIVE && window.LIVE.sessionId){
+      if(window.liveAutoPick) window.liveAutoPick();
+    } else {
+      autoAdvanceLocal();
+    }
+  }
+}
+
+function tickWaitingCountdown(){
+  const el = document.getElementById('waitingCountdown');
+  if(!el || !state.startsAt) return;
+  const remaining = Math.max(0, state.startsAt - Date.now());
+  const mm = Math.floor(remaining / 60000);
+  const ss = Math.floor((remaining % 60000) / 1000);
+  el.textContent = mm + ':' + String(ss).padStart(2, '0');
+  if(remaining <= 0 && window.liveStartNow){
+    window.liveStartNow();
+  }
+}
+setInterval(tickClock, 1000);
+tickClock();
+
+// Exposes the current draft state to the Firebase module script below.
+window.getDraftState = function(){ return state; };
+window.buildSnakeOrder = buildSnakeOrder;
+
+// Called by the live session listener whenever Firestore data changes.
+let hasRenderedLiveOnce = false;
+window.setDraftStateAndRender = function(newState){
+  const prevHistoryLen = (hasRenderedLiveOnce && state && state.history) ? state.history.length : null;
+
+  state = newState;
+  els.setupPanel.style.display='none';
+  document.getElementById('joiningMsg').style.display='none';
+
+  if(state.status === 'waiting'){
+    document.getElementById('waitingPanel').style.display='block';
+    els.statusBar.classList.add('hidden');
+    els.draftLayout.style.display='none';
+    els.completePanel.style.display='none';
+    hasRenderedLiveOnce = true;
+    return;
+  }
+  document.getElementById('waitingPanel').style.display='none';
+
+  els.draftLayout.style.display='block';
+  populateTierFilter();
+  if(els.tierFilter.querySelector('option[value="'+els.tierFilter.value+'"]')){
+    // keep current filter selection if still valid
+  }
+  renderAll();
+
+  // Only reveal for picks that happened AFTER we were already watching —
+  // not for the backlog of picks already made when someone first joins.
+  if(prevHistoryLen !== null && state.history && state.history.length > prevHistoryLen){
+    const last = state.history[state.history.length - 1];
+    const trainer = state.trainers[last.trainerIdx];
+    const mon = trainer.roster.find(m => m.id === last.monId) || trainer.roster[trainer.roster.length - 1];
+    showPickReveal(trainer.name, mon, !!last.auto);
+  }
+  hasRenderedLiveOnce = true;
+};
+
+document.getElementById('startNowBtn').addEventListener('click', function(){
+  if(window.liveStartNow) window.liveStartNow();
+});
+
+document.getElementById('soundToggleBtn').addEventListener('click', function(){
+  soundEnabled = !soundEnabled;
+  localStorage.setItem('vgcSoundEnabled', String(soundEnabled));
+  updateSoundToggleUI();
+  if(soundEnabled) playDraftChime();
+});
+updateSoundToggleUI();
+
+// ---------- trainer profile editor (name + avatar, before draft starts) ----------
+let pendingAvatarDataUrl = null;
+const avatarInputEl = document.getElementById('avatarInput');
+const avatarPreviewEl = document.getElementById('profileAvatarPreview');
+const avatarPlaceholderEl = document.getElementById('profileAvatarPlaceholder');
+const nameInputEl = document.getElementById('nameInput');
+const saveProfileBtn = document.getElementById('saveProfileBtn');
+const profileStatusEl = document.getElementById('profileStatus');
+
+if(avatarInputEl){
+  avatarInputEl.addEventListener('change', function(){
+    const file = this.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      openCropModal(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ---------- crop / zoom / pan tool for profile photos ----------
+const cropModalEl = document.getElementById('cropModal');
+const cropViewportEl = document.getElementById('cropViewport');
+const cropImageEl = document.getElementById('cropImage');
+const cropZoomSlider = document.getElementById('cropZoomSlider');
+const cropConfirmBtn = document.getElementById('cropConfirmBtn');
+const cropCancelBtn = document.getElementById('cropCancelBtn');
+
+const CROP_VIEWPORT_SIZE = 240;
+const CROP_OUTPUT_SIZE = 200;
+let cropState = { naturalW: 0, naturalH: 0, scale: 1, minScale: 1, left: 0, top: 0 };
+let cropDragging = false;
+let cropDragStart = { x: 0, y: 0, left: 0, top: 0 };
+
+function openCropModal(dataUrl){
+  const img = new Image();
+  img.onload = function(){
+    cropState.naturalW = img.naturalWidth;
+    cropState.naturalH = img.naturalHeight;
+    cropState.minScale = Math.max(CROP_VIEWPORT_SIZE / img.naturalWidth, CROP_VIEWPORT_SIZE / img.naturalHeight);
+    cropState.scale = cropState.minScale;
+    cropState.left = (CROP_VIEWPORT_SIZE - cropState.naturalW * cropState.scale) / 2;
+    cropState.top = (CROP_VIEWPORT_SIZE - cropState.naturalH * cropState.scale) / 2;
+
+    cropImageEl.src = dataUrl;
+    cropZoomSlider.min = cropState.minScale;
+    cropZoomSlider.max = cropState.minScale * 4;
+    cropZoomSlider.step = (cropState.minScale * 3) / 200;
+    cropZoomSlider.value = cropState.minScale;
+
+    applyCropTransform();
+    cropModalEl.style.display = 'flex';
+  };
+  img.src = dataUrl;
+}
+
+function clampCropOffsets(){
+  const dispW = cropState.naturalW * cropState.scale;
+  const dispH = cropState.naturalH * cropState.scale;
+  cropState.left = Math.min(0, Math.max(CROP_VIEWPORT_SIZE - dispW, cropState.left));
+  cropState.top = Math.min(0, Math.max(CROP_VIEWPORT_SIZE - dispH, cropState.top));
+}
+
+function applyCropTransform(){
+  clampCropOffsets();
+  const dispW = cropState.naturalW * cropState.scale;
+  const dispH = cropState.naturalH * cropState.scale;
+  cropImageEl.style.width = dispW + 'px';
+  cropImageEl.style.height = dispH + 'px';
+  cropImageEl.style.left = cropState.left + 'px';
+  cropImageEl.style.top = cropState.top + 'px';
+}
+
+cropZoomSlider.addEventListener('input', function(){
+  const newScale = parseFloat(this.value);
+  const centerX = CROP_VIEWPORT_SIZE / 2, centerY = CROP_VIEWPORT_SIZE / 2;
+  const imgX = (centerX - cropState.left) / cropState.scale;
+  const imgY = (centerY - cropState.top) / cropState.scale;
+  cropState.scale = newScale;
+  cropState.left = centerX - imgX * newScale;
+  cropState.top = centerY - imgY * newScale;
+  applyCropTransform();
+});
+
+cropViewportEl.addEventListener('wheel', function(e){
+  e.preventDefault();
+  const delta = e.deltaY < 0 ? 1.05 : 0.95;
+  const newScale = Math.min(parseFloat(cropZoomSlider.max), Math.max(parseFloat(cropZoomSlider.min), cropState.scale * delta));
+  cropZoomSlider.value = newScale;
+  cropZoomSlider.dispatchEvent(new Event('input'));
+}, { passive: false });
+
+cropViewportEl.addEventListener('pointerdown', function(e){
+  cropDragging = true;
+  cropViewportEl.style.cursor = 'grabbing';
+  cropDragStart = { x: e.clientX, y: e.clientY, left: cropState.left, top: cropState.top };
+  cropViewportEl.setPointerCapture(e.pointerId);
+});
+cropViewportEl.addEventListener('pointermove', function(e){
+  if(!cropDragging) return;
+  cropState.left = cropDragStart.left + (e.clientX - cropDragStart.x);
+  cropState.top = cropDragStart.top + (e.clientY - cropDragStart.y);
+  applyCropTransform();
+});
+['pointerup', 'pointercancel'].forEach(evt => {
+  cropViewportEl.addEventListener(evt, function(){
+    cropDragging = false;
+    cropViewportEl.style.cursor = 'grab';
+  });
+});
+
+cropCancelBtn.addEventListener('click', function(){
+  cropModalEl.style.display = 'none';
+  avatarInputEl.value = '';
+});
+
+cropConfirmBtn.addEventListener('click', function(){
+  const sx = -cropState.left / cropState.scale;
+  const sy = -cropState.top / cropState.scale;
+  const sSize = CROP_VIEWPORT_SIZE / cropState.scale;
+  const canvas = document.createElement('canvas');
+  canvas.width = CROP_OUTPUT_SIZE;
+  canvas.height = CROP_OUTPUT_SIZE;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(cropImageEl, sx, sy, sSize, sSize, 0, 0, CROP_OUTPUT_SIZE, CROP_OUTPUT_SIZE);
+  pendingAvatarDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+  avatarPreviewEl.src = pendingAvatarDataUrl;
+  avatarPreviewEl.style.display = '';
+  avatarPlaceholderEl.style.display = 'none';
+  cropModalEl.style.display = 'none';
+  avatarInputEl.value = '';
+});
+
+if(saveProfileBtn){
+  saveProfileBtn.addEventListener('click', async function(){
+    if(!window.LIVE || window.LIVE.myTrainerIdx < 0) return;
+    profileStatusEl.textContent = 'Saving…';
+    profileStatusEl.style.color = 'var(--cream-dim)';
+    saveProfileBtn.disabled = true;
+    const ok = await window.liveUpdateTrainerProfile(window.LIVE.myTrainerIdx, nameInputEl.value, pendingAvatarDataUrl);
+    saveProfileBtn.disabled = false;
+    if(ok){
+      profileStatusEl.textContent = 'Saved!';
+      profileStatusEl.style.color = 'var(--gold)';
+      pendingAvatarDataUrl = null;
+    } else {
+      profileStatusEl.textContent = '';
+    }
+  });
+}
+
+document.getElementById('saveDbBtn').addEventListener('click', function(){
+  if(window.saveResultsToDatabase) window.saveResultsToDatabase();
+});
+</script>
+
+<!--
+  ============================================================
+  DATABASE SETUP (Firebase Firestore — free tier)
+  ============================================================
+  This page saves completed drafts to Firebase so they can be
+  looked up later on results.html. To turn this on:
+
+  1. Go to https://console.firebase.google.com and create a
+     free project (no credit card needed on the Spark plan).
+  2. In the project, go to Build > Firestore Database > Create
+     database. Start it in test mode (or set rules below).
+  3. Go to Project settings > General > Your apps > add a Web
+     app. Firebase will show you a firebaseConfig object.
+  4. Copy those values into FIREBASE_CONFIG below, replacing
+     the placeholders. Do the same in results.html.
+  5. In Firestore > Rules, a simple starting point that lets
+     this league write and read results (tighten as you like):
+
+       rules_version = '2';
+       service cloud.firestore {
+         match /databases/{database}/documents {
+           match /draftResults/{docId} {
+             allow read: if true;
+             allow create: if true;
+             allow update, delete: if false;
+           }
+         }
+       }
+
+  Until you fill in FIREBASE_CONFIG, the "Save results to site"
+  button will show an error instead of saving — everything else
+  on this page works fine without it.
+  ============================================================
+-->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, serverTimestamp,
+    doc, onSnapshot, runTransaction
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyAJgrhwFih2XZG5XdNvAcIB0m5VwL6Ebn4",
+    authDomain: "pokemon-vgc-draft-league.firebaseapp.com",
+    projectId: "pokemon-vgc-draft-league",
+    storageBucket: "pokemon-vgc-draft-league.firebasestorage.app",
+    messagingSenderId: "605274494232",
+    appId: "1:605274494232:web:f0f691ce048da2f5e57a6d"
+  };
+
+  const isConfigured = FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY";
+  window.FIREBASE_READY = isConfigured;
+  let db = null;
+  if(isConfigured){
+    const app = initializeApp(FIREBASE_CONFIG);
+    db = getFirestore(app);
+  }
+
+  // ============================================================
+  // LIVE MULTIPLAYER DRAFT SESSIONS
+  // ============================================================
+  // A browser-local id so each device can "claim" a trainer seat
+  // and be recognized again after a refresh.
+  function getClientId(){
+    let id = localStorage.getItem('vgcClientId');
+    if(!id){
+      id = 'c_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem('vgcClientId', id);
+    }
+    return id;
+  }
+
+  window.LIVE = {
+    sessionId: null,
+    clientId: getClientId(),
+    myTrainerIdx: -1,
+    hostId: null,
+    docRef: null
+  };
+
+  function escapeHtmlLive(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderLiveBanner(data){
+    const el = document.getElementById('liveBanner');
+    const shareUrl = window.location.origin + window.location.pathname + '?session=' + window.LIVE.sessionId;
+    const isHost = window.LIVE.clientId === data.hostClientId;
+
+    let seatsHtml = data.trainers.map((t, i) => {
+      const mine = t.claimedBy === window.LIVE.clientId;
+      const taken = !!t.claimedBy && !mine;
+      const cls = mine ? 'seat-btn mine' : (taken ? 'seat-btn taken' : 'seat-btn');
+      const avatarHtml = t.avatar
+        ? '<img class="avatar-thumb" src="'+t.avatar+'" alt="">'
+        : '<span class="avatar-thumb-placeholder"></span>';
+      return '<button class="'+cls+'" data-idx="'+i+'" '+(taken?'disabled':'')+'>'+avatarHtml+escapeHtmlLive(t.name)+(mine?' (you)':'')+'</button>';
+    }).join('');
+
+    const banner = document.createElement('div');
+    banner.className = 'live-banner';
+    banner.innerHTML =
+      '<div class="lb-row">' +
+        '<div><span class="lb-label">Live Draft Session</span><div style="font-family:var(--display);font-size:22px;text-transform:uppercase;margin-top:4px;">'+escapeHtmlLive(data.seasonName || 'Untitled Season')+'</div></div>' +
+        '<div class="lb-link"><span id="shareUrlText">'+escapeHtmlLive(shareUrl)+'</span></div>' +
+        '<button class="btn btn-ghost btn-sm" id="copyLinkBtn">Copy invite link</button>' +
+      '</div>' +
+      '<div class="seat-list" id="seatList">'+seatsHtml+'</div>' +
+      '<p class="signup-note" style="margin-top:10px;">Share the invite link with your other trainers. Each person opens it and claims their own seat.'+(data.status==='waiting' ? ' The draft clock hasn\'t started yet.' : ' Only the trainer on the clock can draft.')+(isHost?' As the host, you also see the Undo button.':'')+'</p>';
+
+    el.innerHTML = '';
+    el.appendChild(banner);
+
+    document.getElementById('copyLinkBtn').addEventListener('click', function(){
+      navigator.clipboard.writeText(shareUrl).then(()=>{
+        this.textContent = 'Copied!';
+        setTimeout(()=>{ this.textContent = 'Copy invite link'; }, 1500);
+      });
+    });
+
+    banner.querySelectorAll('.seat-btn:not(.taken):not(.mine)').forEach(btn=>{
+      btn.addEventListener('click', function(){
+        window.liveClaimTrainer(parseInt(this.dataset.idx,10));
+      });
+    });
+
+    // Host-only controls: hide Undo for non-hosts in live sessions.
+    const undoBtn = document.getElementById('undoBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    if(undoBtn) undoBtn.style.display = isHost ? '' : 'none';
+    if(resetBtn) resetBtn.textContent = 'Leave session';
+
+    const startNowBtn = document.getElementById('startNowBtn');
+    if(startNowBtn) startNowBtn.style.display = (isHost && data.status === 'waiting') ? '' : 'none';
+
+    // Profile editor: only the trainer who claimed a seat sees it, and only
+    // while the session is still waiting to start.
+    const profileEditor = document.getElementById('profileEditor');
+    const myIdx = window.LIVE.myTrainerIdx;
+    if(profileEditor){
+      if(myIdx >= 0 && data.trainers[myIdx] && data.status === 'waiting'){
+        profileEditor.style.display = 'block';
+        if(window._profileEditorPrefilledFor !== myIdx){
+          document.getElementById('nameInput').value = data.trainers[myIdx].name || '';
+          const avatarUrl = data.trainers[myIdx].avatar;
+          const previewEl = document.getElementById('profileAvatarPreview');
+          const placeholderEl = document.getElementById('profileAvatarPlaceholder');
+          if(avatarUrl){
+            previewEl.src = avatarUrl; previewEl.style.display = ''; placeholderEl.style.display = 'none';
+          } else {
+            previewEl.style.display = 'none'; placeholderEl.style.display = 'flex';
+          }
+          window._profileEditorPrefilledFor = myIdx;
+        }
+      } else {
+        profileEditor.style.display = 'none';
+      }
+    }
+  }
+
+  const WAIT_MS = 10 * 60 * 1000;
+
+  window.liveCreateSession = async function(setup){
+    if(!isConfigured){
+      alert('The database isn\'t set up yet, so this draft will stay local to this browser only.');
+      return;
+    }
+    const trainers = setup.names.map(name => ({ name, budget: setup.budget, roster: [], claimedBy: null }));
+    const pickOrder = window.buildSnakeOrder(setup.numTrainers, setup.numSlots);
+    const docData = {
+      seasonName: setup.seasonName,
+      numTrainers: setup.numTrainers,
+      numSlots: setup.numSlots,
+      budgetStart: setup.budget,
+      trainers,
+      pickOrder,
+      currentPick: 0,
+      draftedIds: {},
+      history: [],
+      status: 'waiting',
+      startsAt: Date.now() + WAIT_MS,
+      hostClientId: window.LIVE.clientId,
+      createdAt: serverTimestamp()
+    };
+    const ref = await addDoc(collection(db, 'draftSessions'), docData);
+    window.history.replaceState(null, '', window.location.pathname + '?session=' + ref.id);
+    joinSession(ref.id);
+  };
+
+  // Moves a session from "waiting" to "active" and starts the first pick
+  // clock. Safe to call redundantly (from the auto-timer AND a host click) —
+  // the transaction re-checks status so only the first call does anything.
+  window.liveStartNow = async function(){
+    try{
+      await runTransaction(db, async (tx) => {
+        const snap = await tx.get(window.LIVE.docRef);
+        const data = snap.data();
+        if(data.status !== 'waiting') return;
+        data.status = 'active';
+        data.pickStartedAt = Date.now();
+        tx.set(window.LIVE.docRef, data);
+      });
+    }catch(err){
+      // Silent — expected to occasionally race across multiple browsers.
+    }
+  };
+
+  function joinSession(id){
+    window.LIVE.sessionId = id;
+    window.LIVE.docRef = doc(db, 'draftSessions', id);
+    const savedClaim = localStorage.getItem('vgcClaim_' + id);
+    if(savedClaim !== null) window.LIVE.myTrainerIdx = parseInt(savedClaim, 10);
+
+    document.getElementById('setupPanel').style.display = 'none';
+    document.getElementById('joiningMsg').style.display = 'block';
+
+    onSnapshot(window.LIVE.docRef, snap => {
+      if(!snap.exists()){
+        document.getElementById('joiningMsg').innerHTML = '<h2>Session Not Found</h2><p class="hint">This draft link looks invalid or was never created.</p>';
+        return;
+      }
+      const data = snap.data();
+      window.LIVE.hostId = data.hostClientId;
+      // Confirm my claimed seat still actually belongs to me (in case of a mismatch)
+      if(window.LIVE.myTrainerIdx >= 0 && data.trainers[window.LIVE.myTrainerIdx] && data.trainers[window.LIVE.myTrainerIdx].claimedBy !== window.LIVE.clientId){
+        window.LIVE.myTrainerIdx = -1;
+      }
+      window.setDraftStateAndRender(data);
+      renderLiveBanner(data);
+    }, err => {
+      document.getElementById('joiningMsg').innerHTML = '<h2>Connection Error</h2><p class="hint">'+escapeHtmlLive(err.message)+'</p>';
+    });
+  }
+
+  window.liveClaimTrainer = async function(idx){
+    try{
+      await runTransaction(db, async (tx) => {
+        const snap = await tx.get(window.LIVE.docRef);
+        const data = snap.data();
+        if(data.trainers[idx].claimedBy){
+          throw new Error('That seat was just claimed by someone else — pick another.');
+        }
+        data.trainers[idx].claimedBy = window.LIVE.clientId;
+        tx.set(window.LIVE.docRef, data);
+      });
+      window.LIVE.myTrainerIdx = idx;
+      localStorage.setItem('vgcClaim_' + window.LIVE.sessionId, String(idx));
+    }catch(err){
+      alert(err.message);
+    }
+  };
+
+  // Lets a trainer change their own display name and/or avatar while the
+  // session is still in the waiting room, before the draft clock starts.
+  window.liveUpdateTrainerProfile = async function(idx, newName, avatarDataUrlOrNull){
+    try{
+      await runTransaction(db, async (tx) => {
+        const snap = await tx.get(window.LIVE.docRef);
+        const data = snap.data();
+        if(data.trainers[idx].claimedBy !== window.LIVE.clientId){
+          throw new Error('You can only edit your own seat.');
+        }
+        if(data.status !== 'waiting'){
+          throw new Error('Profile changes are only allowed before the draft starts.');
+        }
+        const trimmed = (newName || '').trim();
+        if(trimmed) data.trainers[idx].name = trimmed;
+        if(avatarDataUrlOrNull) data.trainers[idx].avatar = avatarDataUrlOrNull;
+        tx.set(window.LIVE.docRef, data);
+      });
+      return true;
+    }catch(err){
+      alert(err.message);
+      return false;
+    }
+  };
+
+  window.liveDraftPick = async function(p){
+    if(window.LIVE.myTrainerIdx < 0){
+      alert('Claim a trainer seat above before drafting.');
+      return;
+    }
+    try{
+      await runTransaction(db, async (tx) => {
+        const snap = await tx.get(window.LIVE.docRef);
+        const data = snap.data();
+        const tIdx = data.pickOrder[data.currentPick];
+        if(tIdx !== window.LIVE.myTrainerIdx) throw new Error('It\'s not your turn yet.');
+        if(data.draftedIds && data.draftedIds[p.id]) throw new Error('That Pokémon was just drafted by someone else.');
+        const trainer = data.trainers[tIdx];
+        if(trainer.budget < p.tier) throw new Error('Not enough points remaining.');
+        if(trainer.roster.length >= data.numSlots) throw new Error('Your roster is already full.');
+
+        trainer.roster.push({ id: p.id, name: p.name, variation: p.variation, gen: p.gen, tier: p.tier, types: p.types || [] });
+        trainer.budget -= p.tier;
+        if(!data.draftedIds) data.draftedIds = {};
+        data.draftedIds[p.id] = { trainerIdx: tIdx, tier: p.tier };
+        data.history.push({ trainerIdx: tIdx, monId: p.id });
+        data.currentPick += 1;
+        data.pickStartedAt = Date.now();
+        if(data.currentPick >= data.pickOrder.length) data.status = 'complete';
+        tx.set(window.LIVE.docRef, data);
+      });
+    }catch(err){
+      alert(err.message);
+    }
+  };
+
+  // Called by any connected client's clock when time runs out. Safe to call
+  // from multiple browsers at once — the transaction re-checks server-side
+  // that the pick is actually still expired before doing anything.
+  window.liveAutoPick = async function(){
+    try{
+      await runTransaction(db, async (tx) => {
+        const snap = await tx.get(window.LIVE.docRef);
+        const data = snap.data();
+        if(data.status !== 'active') return;
+        if(!data.pickStartedAt) return;
+        const elapsed = Date.now() - data.pickStartedAt;
+        if(elapsed < 60000) return; // not actually expired yet, someone beat the clock
+
+        const tIdx = data.pickOrder[data.currentPick];
+        const trainer = data.trainers[tIdx];
+        const remainingSlotsAfter = data.numSlots - (trainer.roster.length + 1);
+        const mon = window.pickAutoMon(data.draftedIds || {}, trainer.budget, remainingSlotsAfter);
+        if(!mon){
+          data.pickStartedAt = Date.now();
+          tx.set(window.LIVE.docRef, data);
+          return;
+        }
+
+        trainer.roster.push(mon);
+        trainer.budget -= mon.tier;
+        if(!data.draftedIds) data.draftedIds = {};
+        data.draftedIds[mon.id] = { trainerIdx: tIdx, tier: mon.tier };
+        data.history.push({ trainerIdx: tIdx, monId: mon.id, auto: true });
+        data.currentPick += 1;
+        data.pickStartedAt = Date.now();
+        if(data.currentPick >= data.pickOrder.length) data.status = 'complete';
+        tx.set(window.LIVE.docRef, data);
+      });
+    }catch(err){
+      // Silent — this fires on a timer from every connected browser, so
+      // transient conflicts are expected and not worth surfacing to the user.
+    }
+  };
+
+  window.liveUndoPick = async function(){
+    try{
+      await runTransaction(db, async (tx) => {
+        const snap = await tx.get(window.LIVE.docRef);
+        const data = snap.data();
+        if(!data.history || data.history.length === 0) return;
+        const last = data.history.pop();
+        const trainer = data.trainers[last.trainerIdx];
+        const idxInRoster = trainer.roster.findIndex(m => m.id === last.monId);
+        if(idxInRoster > -1){
+          const mon = trainer.roster.splice(idxInRoster, 1)[0];
+          trainer.budget += mon.tier;
+        }
+        delete data.draftedIds[last.monId];
+        data.currentPick -= 1;
+        data.status = 'active';
+        data.pickStartedAt = Date.now();
+        tx.set(window.LIVE.docRef, data);
+      });
+    }catch(err){
+      alert(err.message);
+    }
+  };
+
+  // Auto-join if this page was opened via a shared invite link.
+  (function(){
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session');
+    if(sessionId && isConfigured){
+      joinSession(sessionId);
+    }
+  })();
+
+  window.saveResultsToDatabase = async function(){
+    const statusEl = document.getElementById('saveDbStatus');
+    const btn = document.getElementById('saveDbBtn');
+    if(!isConfigured){
+      statusEl.textContent = 'Database not set up yet — see the setup instructions in this file\'s source (FIREBASE_CONFIG).';
+      statusEl.style.color = 'var(--scarlet)';
+      return;
+    }
+    const draftState = window.getDraftState();
+    if(!draftState){
+      statusEl.textContent = 'No draft to save yet.';
+      statusEl.style.color = 'var(--scarlet)';
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try{
+      await addDoc(collection(db, 'draftResults'), {
+        savedAt: serverTimestamp(),
+        seasonName: draftState.seasonName || 'Untitled Draft',
+        numTrainers: draftState.numTrainers,
+        numSlots: draftState.numSlots,
+        budgetStart: draftState.budgetStart,
+        trainers: draftState.trainers.map(t => ({
+          name: t.name,
+          avatar: t.avatar || null,
+          budgetRemaining: t.budget,
+          roster: t.roster.map(m => ({ id: m.id, name: m.name, variation: m.variation, gen: m.gen, tier: m.tier, types: m.types || [] }))
+        }))
+      });
+      statusEl.textContent = 'Saved! View it any time on the Results page.';
+      statusEl.style.color = 'var(--gold)';
+      btn.textContent = 'Saved ✓';
+    }catch(err){
+      statusEl.textContent = 'Save failed: ' + err.message;
+      statusEl.style.color = 'var(--scarlet)';
+      btn.disabled = false;
+      btn.textContent = 'Save results to site';
+    }
+  };
+</script>
+
+</body>
+</html>
