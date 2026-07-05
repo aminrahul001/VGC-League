@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pool — Pokemon VGC Draft League</title>
+<meta name="description" content="Every draftable Pokémon in the Regulation M-B pool and its point value.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0D0D0D;
+    --ink-soft:#161616;
+    --panel:#1C1C1C;
+    --cream:#FAFAF7;
+    --cream-dim:#B8B7B2;
+    --gold:#FFCB05;
+    --gold-soft:#C79A00;
+    --teal:#B00000;
+    --teal-bright:#FF5A5A;
+    --scarlet:#EE1515;
+    --slate:#3A3A3A;
+    --line: rgba(250,250,247,0.14);
+
+    --display: 'Big Shoulders Display', sans-serif;
+    --body: 'Inter', sans-serif;
+    --mono: 'Space Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--cream);
+    font-family:var(--body);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none;}
+  ::selection{background:var(--gold);color:var(--ink);}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+  h1,h2{font-family:var(--display);text-transform:uppercase;letter-spacing:0.01em;line-height:0.96;margin:0;}
+
+  header.site-nav{position:sticky;top:0;z-index:60;background:rgba(13,13,13,0.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;max-width:1300px;margin:0 auto;}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:18px;letter-spacing:0.02em;text-transform:uppercase;}
+  .brand-mark{width:22px;height:22px;flex-shrink:0;}
+  .nav-links{display:flex;gap:20px;font-size:13px;font-weight:600;color:var(--cream-dim);}
+  .nav-links a:hover{color:var(--gold);}
+
+  main{max-width:1300px;margin:0 auto;padding:40px 22px 80px;}
+
+  .page-head{margin-bottom:28px;}
+  .page-head .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);}
+  .page-head h1{font-size:clamp(34px,5vw,52px);margin-top:10px;}
+  .page-head p{color:var(--cream-dim);font-size:15px;max-width:560px;margin-top:12px;}
+
+  .stats-row{display:flex;gap:28px;flex-wrap:wrap;margin-bottom:28px;}
+  .stats-row div{font-family:var(--mono);}
+  .stats-row .num{font-size:22px;color:var(--gold);display:block;}
+  .stats-row .label{font-size:11px;color:var(--cream-dim);text-transform:uppercase;letter-spacing:0.08em;}
+
+  .pool-panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:20px;
+  }
+  .pool-controls{
+    display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;
+    margin-bottom:16px;
+    padding-bottom:16px;
+    border-bottom:1px solid var(--line);
+  }
+  .field-inline label{
+    display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;
+    letter-spacing:0.08em;color:var(--cream-dim);margin-bottom:6px;
+  }
+  select, input[type=text]{
+    background:var(--ink-soft);
+    border:1px solid var(--line);
+    color:var(--cream);
+    padding:10px 12px;
+    border-radius:3px;
+    font-family:var(--body);
+    font-size:14px;
+    min-width:160px;
+  }
+  select:focus, input:focus{border-color:var(--gold);}
+  .pool-count{font-family:var(--mono);font-size:12px;color:var(--cream-dim);margin-left:auto;align-self:center;}
+
+  .pool-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .mon-card{
+    background:var(--ink-soft);
+    padding:14px 16px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .mon-sprite{width:44px;height:44px;object-fit:contain;flex-shrink:0;}
+  .mon-info{flex:1;min-width:0;}
+  .mon-info .mn{font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .mon-info .mv{font-family:var(--mono);font-size:11px;color:var(--teal-bright);}
+  .mon-info .mg{font-family:var(--mono);font-size:11px;color:var(--cream-dim);margin-top:2px;}
+  .tier-chip{
+    font-family:var(--mono);font-weight:700;font-size:13px;
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:30px;height:30px;border-radius:4px;flex-shrink:0;
+    background:rgba(255,203,5,0.15);color:var(--gold);
+  }
+  .type-badges{display:flex;gap:5px;margin-top:5px;}
+  .type-badge{
+    font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:0.03em;padding:2px 7px;border-radius:3px;line-height:1.6;
+  }
+
+  .empty-state{text-align:center;padding:60px 20px;color:var(--cream-dim);font-size:14px;grid-column:1/-1;background:var(--ink-soft);}
+
+  footer{max-width:1300px;margin:0 auto;padding:28px 22px 60px;color:var(--cream-dim);font-size:12.5px;}
+
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-track{background:var(--ink-soft);}
+  ::-webkit-scrollbar-thumb{background:var(--slate);border-radius:4px;}
+</style>
+</head>
+<body>
+
+<header class="site-nav">
+  <div class="nav-inner">
+    <a href="home.html" class="brand">
+      <svg class="brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="45" fill="#fff" stroke="#111" stroke-width="6"/>
+        <path d="M6,50 A44,44 0 0,1 94,50 Z" fill="#EE1515" stroke="#111" stroke-width="6"/>
+        <line x1="6" y1="50" x2="94" y2="50" stroke="#111" stroke-width="7"/>
+        <circle cx="50" cy="50" r="15" fill="#fff" stroke="#111" stroke-width="7"/>
+        <circle cx="50" cy="50" r="6" fill="#111"/>
+      </svg>
+      Pokemon VGC Draft League
+    </a>
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+      <a href="index.html#format">Format</a>
+      <a href="index.html#how">How It Works</a>
+      <span style="color:var(--gold);">Pool</span>
+      <a href="results.html">Results</a>
+      <a href="schedule.html">Schedule</a>
+      <a href="standings.html">Standings</a>
+      <a href="draft.html">Draft Room</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="page-head">
+    <span class="eyebrow">Regulation Set M-B</span>
+    <h1>The Draft Pool</h1>
+    <p>Every draftable Pokémon in the league and its point cost. Browse it any time — you don't need a draft in progress to look these up.</p>
+  </div>
+
+  <div class="stats-row" id="statsRow"></div>
+
+  <div class="pool-panel">
+    <div class="pool-controls">
+      <div class="field-inline">
+        <label for="searchBox">Search</label>
+        <input type="text" id="searchBox" placeholder="Pokémon name…">
+      </div>
+      <div class="field-inline">
+        <label for="tierFilter">Tier</label>
+        <select id="tierFilter"><option value="all">All tiers</option></select>
+      </div>
+      <div class="field-inline">
+        <label for="genFilter">Generation</label>
+        <select id="genFilter"><option value="all">All generations</option></select>
+      </div>
+      <div class="field-inline">
+        <label for="typeFilter">Type</label>
+        <select id="typeFilter"><option value="all">All types</option></select>
+      </div>
+      <div class="field-inline">
+        <label for="sortMode">Sort by</label>
+        <select id="sortMode">
+          <option value="tierDesc">Tier: high to low</option>
+          <option value="tierAsc">Tier: low to high</option>
+          <option value="nameAsc">Name: A–Z</option>
+        </select>
+      </div>
+      <span class="pool-count" id="poolCount"></span>
+    </div>
+    <div class="pool-grid" id="poolGrid"></div>
+  </div>
+</main>
+
+<footer>
+  Point values are set per the league's draft settings. If a sprite doesn't load, a faint pokéball outline shows instead — the data itself is unaffected.
+</footer>
+
+<script>
+const POOL = [{"id": 9, "name": "Charizard", "variation": "Mega-Y", "gen": 6, "tier": 20, "types": ["fire", "flying"]}, {"id": 1242, "name": "Floette", "variation": "Mega", "gen": 9, "tier": 20, "types": ["fairy"]}, {"id": 128, "name": "Gengar", "variation": "Mega", "gen": 6, "tier": 20, "types": ["ghost", "poison"]}, {"id": 1206, "name": "Archaludon", "variation": "", "gen": 9, "tier": 19, "types": ["steel", "dragon"]}, {"id": 1074, "name": "Basculegion", "variation": "", "gen": 8, "tier": 19, "types": ["water", "ghost"]}, {"id": 1228, "name": "Froslass", "variation": "Mega", "gen": 9, "tier": 19, "types": ["ice", "ghost"]}, {"id": 1182, "name": "Gholdengo", "variation": "", "gen": 9, "tier": 19, "types": ["steel", "ghost"]}, {"id": 376, "name": "Mawile", "variation": "Mega", "gen": 6, "tier": 19, "types": ["steel", "fairy"]}, {"id": 463, "name": "Metagross", "variation": "Mega", "gen": 6, "tier": 19, "types": ["steel", "psychic"]}, {"id": 1076, "name": "Sneasler", "variation": "", "gen": 8, "tier": 19, "types": ["fighting", "poison"]}, {"id": 1227, "name": "Staraptor", "variation": "Mega", "gen": 9, "tier": 19, "types": ["fighting", "flying"]}, {"id": 328, "name": "Swampert", "variation": "Mega", "gen": 6, "tier": 19, "types": ["water", "ground"]}, {"id": 662, "name": "Whimsicott", "variation": "", "gen": 5, "tier": 19, "types": ["grass", "fairy"]}, {"id": 545, "name": "Garchomp", "variation": "", "gen": 4, "tier": 18, "types": ["dragon", "ground"]}, {"id": 353, "name": "Gardevoir", "variation": "Mega", "gen": 6, "tier": 18, "types": ["psychic", "fairy"]}, {"id": 878, "name": "Incineroar", "variation": "", "gen": 7, "tier": 18, "types": ["fire", "dark"]}, {"id": 155, "name": "Kangaskhan", "variation": "Mega", "gen": 6, "tier": 18, "types": ["normal"]}, {"id": 1198, "name": "Sinistcha", "variation": "", "gen": 9, "tier": 18, "types": ["grass", "ghost"]}, {"id": 189, "name": "Aerodactyl", "variation": "", "gen": 1, "tier": 17, "types": ["rock", "flying"]}, {"id": 190, "name": "Aerodactyl", "variation": "Mega", "gen": 6, "tier": 17, "types": ["rock", "flying"]}, {"id": 1159, "name": "Annihilape", "variation": "", "gen": 9, "tier": 17, "types": ["fighting", "ghost"]}, {"id": 13, "name": "Blastoise", "variation": "Mega", "gen": 6, "tier": 17, "types": ["water"]}, {"id": 1239, "name": "Delphox", "variation": "Mega", "gen": 9, "tier": 17, "types": ["fire", "psychic"]}, {"id": 1024, "name": "Grimmsnarl", "variation": "", "gen": 8, "tier": 17, "types": ["dark", "fairy"]}, {"id": 1164, "name": "Kingambit", "variation": "", "gen": 9, "tier": 17, "types": ["dark", "steel"]}, {"id": 1241, "name": "Pyroar", "variation": "Mega", "gen": 9, "tier": 17, "types": ["fire", "normal"]}, {"id": 313, "name": "Tyranitar", "variation": "Mega", "gen": 6, "tier": 17, "types": ["rock", "dark"]}, {"id": 817, "name": "Aegislash", "variation": "", "gen": 6, "tier": 16, "types": ["steel", "ghost"]}, {"id": 200, "name": "Dragonite", "variation": "", "gen": 1, "tier": 16, "types": ["dragon", "flying"]}, {"id": 1161, "name": "Farigiraf", "variation": "", "gen": 9, "tier": 16, "types": ["normal", "psychic"]}, {"id": 1256, "name": "Glimmora", "variation": "Mega", "gen": 9, "tier": 16, "types": ["rock", "poison"]}, {"id": 528, "name": "Lopunny", "variation": "Mega", "gen": 6, "tier": 16, "types": ["normal", "fighting"]}, {"id": 1100, "name": "Maushold", "variation": "", "gen": 9, "tier": 16, "types": ["normal"]}, {"id": 349, "name": "Pelipper", "variation": "", "gen": 3, "tier": 16, "types": ["water", "flying"]}, {"id": 312, "name": "Tyranitar", "variation": "", "gen": 2, "tier": 16, "types": ["rock", "dark"]}, {"id": 764, "name": "Volcarona", "variation": "", "gen": 5, "tier": 16, "types": ["bug", "fire"]}, {"id": 80, "name": "Arcanine", "variation": "Hisui", "gen": 1, "tier": 15, "types": ["fire", "rock"]}, {"id": 1245, "name": "Barbaracle", "variation": "Mega", "gen": 9, "tier": 15, "types": ["rock", "fighting"]}, {"id": 324, "name": "Blaziken", "variation": "Mega", "gen": 6, "tier": 15, "types": ["fire", "fighting"]}, {"id": 8, "name": "Charizard", "variation": "Mega-X", "gen": 6, "tier": 15, "types": ["fire", "dragon"]}, {"id": 48, "name": "Clefable", "variation": "", "gen": 1, "tier": 15, "types": ["fairy"]}, {"id": 1053, "name": "Dragapult", "variation": "", "gen": 8, "tier": 15, "types": ["dragon", "ghost"]}, {"id": 1222, "name": "Dragonite", "variation": "Mega", "gen": 9, "tier": 15, "types": ["dragon", "flying"]}, {"id": 1235, "name": "Eelektross", "variation": "Mega", "gen": 9, "tier": 15, "types": ["electric"]}, {"id": 550, "name": "Lucario", "variation": "Mega", "gen": 6, "tier": 15, "types": ["fighting", "steel"]}, {"id": 881, "name": "Primarina", "variation": "", "gen": 7, "tier": 15, "types": ["water", "fairy"]}, {"id": 1218, "name": "Raichu", "variation": "Mega-Y", "gen": 9, "tier": 15, "types": ["electric"]}, {"id": 320, "name": "Sceptile", "variation": "Mega", "gen": 6, "tier": 15, "types": ["grass", "dragon"]}, {"id": 272, "name": "Scizor", "variation": "Mega", "gen": 6, "tier": 15, "types": ["bug", "steel"]}, {"id": 1221, "name": "Starmie", "variation": "Mega", "gen": 9, "tier": 15, "types": ["water", "psychic"]}, {"id": 837, "name": "Sylveon", "variation": "", "gen": 6, "tier": 15, "types": ["fairy"]}, {"id": 798, "name": "Talonflame", "variation": "", "gen": 6, "tier": 15, "types": ["fire", "flying"]}, {"id": 402, "name": "Torkoal", "variation": "", "gen": 3, "tier": 15, "types": ["fire"]}, {"id": 79, "name": "Arcanine", "variation": "", "gen": 1, "tier": 14, "types": ["fire"]}, {"id": 1219, "name": "Clefable", "variation": "Mega", "gen": 9, "tier": 14, "types": ["fairy", "flying"]}, {"id": 546, "name": "Garchomp", "variation": "Mega", "gen": 6, "tier": 14, "types": ["dragon", "ground"]}, {"id": 176, "name": "Gyarados", "variation": "Mega", "gen": 6, "tier": 14, "types": ["water", "dark"]}, {"id": 762, "name": "Hydreigon", "variation": "", "gen": 5, "tier": 14, "types": ["dark", "dragon"]}, {"id": 943, "name": "Kommo-o", "variation": "", "gen": 7, "tier": 14, "types": ["dragon", "fighting"]}, {"id": 1223, "name": "Meganium", "variation": "Mega", "gen": 9, "tier": 14, "types": ["grass", "fairy"]}, {"id": 462, "name": "Metagross", "variation": "", "gen": 3, "tier": 14, "types": ["steel", "psychic"]}, {"id": 429, "name": "Milotic", "variation": "", "gen": 3, "tier": 14, "types": ["water"]}, {"id": 52, "name": "Ninetales", "variation": "Alola", "gen": 7, "tier": 14, "types": ["ice", "fairy"]}, {"id": 585, "name": "Rotom", "variation": "Wash", "gen": 4, "tier": 14, "types": ["electric", "water"]}, {"id": 1255, "name": "Scovillain", "variation": "Mega", "gen": 9, "tier": 14, "types": ["grass", "fire"]}, {"id": 1234, "name": "Scrafty", "variation": "Mega", "gen": 9, "tier": 14, "types": ["dark", "fighting"]}, {"id": 4, "name": "Venusaur", "variation": "Mega", "gen": 6, "tier": 14, "types": ["grass", "poison"]}, {"id": 985, "name": "Corviknight", "variation": "", "gen": 8, "tier": 13, "types": ["flying", "steel"]}, {"id": 644, "name": "Excadrill", "variation": "", "gen": 5, "tier": 13, "types": ["ground", "steel"]}, {"id": 1232, "name": "Excadrill", "variation": "Mega", "gen": 9, "tier": 13, "types": ["ground", "steel"]}, {"id": 1150, "name": "Glimmora", "variation": "", "gen": 9, "tier": 13, "types": ["rock", "poison"]}, {"id": 175, "name": "Gyarados", "variation": "", "gen": 1, "tier": 13, "types": ["water", "flying"]}, {"id": 241, "name": "Politoed", "variation": "", "gen": 2, "tier": 13, "types": ["water"]}, {"id": 682, "name": "Scrafty", "variation": "", "gen": 5, "tier": 13, "types": ["dark", "fighting"]}, {"id": 3, "name": "Venusaur", "variation": "", "gen": 1, "tier": 13, "types": ["grass", "poison"]}, {"id": 87, "name": "Alakazam", "variation": "Mega", "gen": 6, "tier": 12, "types": ["psychic"]}, {"id": 239, "name": "Azumarill", "variation": "", "gen": 2, "tier": 12, "types": ["water", "fairy"]}, {"id": 1075, "name": "Basculegion", "variation": "F", "gen": 8, "tier": 12, "types": ["water", "ghost"]}, {"id": 579, "name": "Gallade", "variation": "Mega", "gen": 6, "tier": 12, "types": ["psychic", "fighting"]}, {"id": 1240, "name": "Greninja", "variation": "Mega", "gen": 9, "tier": 12, "types": ["water", "dark"]}, {"id": 1244, "name": "Malamar", "variation": "Mega", "gen": 9, "tier": 12, "types": ["dark", "psychic"]}, {"id": 576, "name": "Mamoswine", "variation": "", "gen": 4, "tier": 12, "types": ["ice", "ground"]}, {"id": 383, "name": "Medicham", "variation": "Mega", "gen": 6, "tier": 12, "types": ["fighting", "psychic"]}, {"id": 1082, "name": "Meowscarada", "variation": "", "gen": 9, "tier": 12, "types": ["grass", "dark"]}, {"id": 1077, "name": "Overqwil", "variation": "", "gen": 8, "tier": 12, "types": ["dark", "poison"]}, {"id": 1143, "name": "Palafin", "variation": "", "gen": 9, "tier": 12, "types": ["water"]}, {"id": 1217, "name": "Raichu", "variation": "Mega-X", "gen": 9, "tier": 12, "types": ["electric"]}, {"id": 584, "name": "Rotom", "variation": "Heat", "gen": 4, "tier": 12, "types": ["electric", "fire"]}, {"id": 910, "name": "Araquanid", "variation": "", "gen": 7, "tier": 11, "types": ["water", "bug"]}, {"id": 1246, "name": "Dragalge", "variation": "Mega", "gen": 9, "tier": 11, "types": ["poison", "dragon"]}, {"id": 805, "name": "Floette", "variation": "", "gen": 6, "tier": 11, "types": ["fairy"]}, {"id": 846, "name": "Klefki", "variation": "", "gen": 6, "tier": 11, "types": ["steel", "fairy"]}, {"id": 813, "name": "Meowstic", "variation": "", "gen": 6, "tier": 11, "types": ["psychic"]}, {"id": 937, "name": "Mimikyu", "variation": "", "gen": 7, "tier": 11, "types": ["ghost", "fairy"]}, {"id": 51, "name": "Ninetales", "variation": "", "gen": 1, "tier": 11, "types": ["fire"]}, {"id": 588, "name": "Rotom", "variation": "Mow", "gen": 4, "tier": 11, "types": ["electric", "grass"]}, {"id": 373, "name": "Sableye", "variation": "", "gen": 3, "tier": 11, "types": ["dark", "ghost"]}, {"id": 271, "name": "Scizor", "variation": "", "gen": 2, "tier": 11, "types": ["bug", "steel"]}, {"id": 1233, "name": "Scolipede", "variation": "Mega", "gen": 9, "tier": 11, "types": ["bug", "poison"]}, {"id": 1225, "name": "Skarmory", "variation": "Mega", "gen": 9, "tier": 11, "types": ["steel", "flying"]}, {"id": 493, "name": "Staraptor", "variation": "", "gen": 4, "tier": 11, "types": ["normal", "flying"]}, {"id": 173, "name": "Tauros", "variation": "Paldea-Aqua", "gen": 1, "tier": 11, "types": ["fighting", "water"]}, {"id": 1138, "name": "Tinkaton", "variation": "", "gen": 9, "tier": 11, "types": ["fairy", "steel"]}, {"id": 401, "name": "Camerupt", "variation": "Mega", "gen": 6, "tier": 10, "types": ["fire", "ground"]}, {"id": 1254, "name": "Falinks", "variation": "Mega", "gen": 9, "tier": 10, "types": ["fighting"]}, {"id": 352, "name": "Gardevoir", "variation": "", "gen": 3, "tier": 10, "types": ["psychic", "fairy"]}, {"id": 1237, "name": "Golurk", "variation": "Mega", "gen": 9, "tier": 10, "types": ["ground", "ghost"]}, {"id": 1247, "name": "Hawlucha", "variation": "Mega", "gen": 9, "tier": 10, "types": ["fighting", "flying"]}, {"id": 624, "name": "Liepard", "variation": "", "gen": 5, "tier": 10, "types": ["dark"]}, {"id": 386, "name": "Manectric", "variation": "Mega", "gen": 6, "tier": 10, "types": ["electric"]}, {"id": 923, "name": "Oranguru", "variation": "", "gen": 7, "tier": 10, "types": ["normal", "psychic"]}, {"id": 35, "name": "Raichu", "variation": "", "gen": 1, "tier": 10, "types": ["electric"]}, {"id": 916, "name": "Salazzle", "variation": "", "gen": 7, "tier": 10, "types": ["poison", "fire"]}, {"id": 801, "name": "Vivillon", "variation": "", "gen": 6, "tier": 10, "types": ["bug", "flying"]}, {"id": 413, "name": "Altaria", "variation": "Mega", "gen": 6, "tier": 9, "types": ["dragon", "fairy"]}, {"id": 12, "name": "Blastoise", "variation": "", "gen": 1, "tier": 9, "types": ["water"]}, {"id": 323, "name": "Blaziken", "variation": "", "gen": 3, "tier": 9, "types": ["fire", "fighting"]}, {"id": 1236, "name": "Chandelure", "variation": "Mega", "gen": 9, "tier": 9, "types": ["ghost", "fire"]}, {"id": 1226, "name": "Chimecho", "variation": "Mega", "gen": 9, "tier": 9, "types": ["psychic", "steel"]}, {"id": 828, "name": "Dragalge", "variation": "", "gen": 6, "tier": 9, "types": ["poison", "dragon"]}, {"id": 1224, "name": "Feraligatr", "variation": "Mega", "gen": 9, "tier": 9, "types": ["water", "dragon"]}, {"id": 1021, "name": "Hatterene", "variation": "", "gen": 8, "tier": 9, "types": ["psychic", "fairy"]}, {"id": 671, "name": "Krookodile", "variation": "", "gen": 5, "tier": 9, "types": ["ground", "dark"]}, {"id": 1243, "name": "Meowstic", "variation": "Mega", "gen": 9, "tier": 9, "types": ["psychic"]}, {"id": 861, "name": "Noivern", "variation": "", "gen": 6, "tier": 9, "types": ["flying", "dragon"]}, {"id": 567, "name": "Rhyperior", "variation": "", "gen": 4, "tier": 9, "types": ["ground", "rock"]}, {"id": 374, "name": "Sableye", "variation": "Mega", "gen": 6, "tier": 9, "types": ["dark", "ghost"]}, {"id": 660, "name": "Scolipede", "variation": "", "gen": 5, "tier": 9, "types": ["bug", "poison"]}, {"id": 327, "name": "Swampert", "variation": "", "gen": 3, "tier": 9, "types": ["water", "ground"]}, {"id": 172, "name": "Tauros", "variation": "Paldea-Blaze", "gen": 1, "tier": 9, "types": ["fighting", "fire"]}, {"id": 564, "name": "Weavile", "variation": "", "gen": 4, "tier": 9, "types": ["dark", "ice"]}, {"id": 696, "name": "Zoroark", "variation": "Hisui", "gen": 5, "tier": 9, "types": ["normal", "ghost"]}, {"id": 380, "name": "Aggron", "variation": "Mega", "gen": 6, "tier": 8, "types": ["steel"]}, {"id": 1115, "name": "Armarouge", "variation": "", "gen": 9, "tier": 8, "types": ["fire", "psychic"]}, {"id": 1116, "name": "Ceruledge", "variation": "", "gen": 9, "tier": 8, "types": ["fire", "ghost"]}, {"id": 1238, "name": "Chesnaught", "variation": "Mega", "gen": 9, "tier": 8, "types": ["grass", "fighting"]}, {"id": 1249, "name": "Crabominable", "variation": "Mega", "gen": 9, "tier": 8, "types": ["fighting", "ice"]}, {"id": 1251, "name": "Drampa", "variation": "Mega", "gen": 9, "tier": 8, "types": ["normal", "dragon"]}, {"id": 1231, "name": "Emboar", "variation": "Mega", "gen": 9, "tier": 8, "types": ["fire", "fighting"]}, {"id": 578, "name": "Gallade", "variation": "", "gen": 4, "tier": 8, "types": ["psychic", "fighting"]}, {"id": 127, "name": "Gengar", "variation": "", "gen": 1, "tier": 8, "types": ["ghost", "poison"]}, {"id": 704, "name": "Reuniclus", "variation": "", "gen": 5, "tier": 8, "types": ["psychic"]}, {"id": 109, "name": "Slowbro", "variation": "Mega", "gen": 6, "tier": 8, "types": ["water", "psychic"]}, {"id": 191, "name": "Snorlax", "variation": "", "gen": 1, "tier": 8, "types": ["normal"]}, {"id": 921, "name": "Tsareena", "variation": "", "gen": 7, "tier": 8, "types": ["grass"]}, {"id": 211, "name": "Typhlosion", "variation": "Hisui", "gen": 2, "tier": 8, "types": ["fire", "ghost"]}, {"id": 709, "name": "Vanilluxe", "variation": "", "gen": 5, "tier": 8, "types": ["ice"]}, {"id": 649, "name": "Conkeldurr", "variation": "", "gen": 5, "tier": 7, "types": ["fighting"]}, {"id": 729, "name": "Eelektross", "variation": "", "gen": 5, "tier": 7, "types": ["electric"]}, {"id": 490, "name": "Empoleon", "variation": "", "gen": 4, "tier": 7, "types": ["water", "steel"]}, {"id": 252, "name": "Espeon", "variation": "", "gen": 2, "tier": 7, "types": ["psychic"]}, {"id": 806, "name": "Florges", "variation": "", "gen": 6, "tier": 7, "types": ["fairy"]}, {"id": 792, "name": "Greninja", "variation": "", "gen": 6, "tier": 7, "types": ["water", "dark"]}, {"id": 838, "name": "Hawlucha", "variation": "", "gen": 6, "tier": 7, "types": ["fighting", "flying"]}, {"id": 275, "name": "Heracross", "variation": "Mega", "gen": 6, "tier": 7, "types": ["bug", "fighting"]}, {"id": 1152, "name": "Houndstone", "variation": "", "gen": 9, "tier": 7, "types": ["ghost"]}, {"id": 487, "name": "Infernape", "variation": "", "gen": 4, "tier": 7, "types": ["fire", "fighting"]}, {"id": 154, "name": "Kangaskhan", "variation": "", "gen": 1, "tier": 7, "types": ["normal"]}, {"id": 382, "name": "Medicham", "variation": "", "gen": 3, "tier": 7, "types": ["fighting", "psychic"]}, {"id": 1148, "name": "Orthworm", "variation": "", "gen": 9, "tier": 7, "types": ["steel"]}, {"id": 24, "name": "Pidgeot", "variation": "Mega", "gen": 6, "tier": 7, "types": ["normal", "flying"]}, {"id": 169, "name": "Pinsir", "variation": "Mega", "gen": 6, "tier": 7, "types": ["bug", "flying"]}, {"id": 396, "name": "Sharpedo", "variation": "Mega", "gen": 6, "tier": 7, "types": ["water", "dark"]}, {"id": 108, "name": "Slowbro", "variation": "", "gen": 1, "tier": 7, "types": ["water", "psychic"]}, {"id": 110, "name": "Slowbro", "variation": "Galar", "gen": 8, "tier": 7, "types": ["poison", "psychic"]}, {"id": 255, "name": "Slowking", "variation": "", "gen": 2, "tier": 7, "types": ["water", "psychic"]}, {"id": 1220, "name": "Victreebel", "variation": "Mega", "gen": 9, "tier": 7, "types": ["grass", "poison"]}, {"id": 1071, "name": "Wyrdeer", "variation": "", "gen": 8, "tier": 7, "types": ["normal", "psychic"]}, {"id": 562, "name": "Abomasnow", "variation": "", "gen": 4, "tier": 6, "types": ["grass", "ice"]}, {"id": 563, "name": "Abomasnow", "variation": "Mega", "gen": 6, "tier": 6, "types": ["grass", "ice"]}, {"id": 820, "name": "Aromatisse", "variation": "", "gen": 6, "tier": 6, "types": ["fairy"]}, {"id": 734, "name": "Chandelure", "variation": "", "gen": 5, "tier": 6, "types": ["ghost", "fire"]}, {"id": 795, "name": "Diggersby", "variation": "", "gen": 6, "tier": 6, "types": ["normal", "ground"]}, {"id": 845, "name": "Goodra", "variation": "Hisui", "gen": 6, "tier": 6, "types": ["steel", "dragon"]}, {"id": 293, "name": "Houndoom", "variation": "Mega", "gen": 6, "tier": 6, "types": ["dark", "fire"]}, {"id": 1207, "name": "Hydrapple", "variation": "", "gen": 9, "tier": 6, "types": ["grass", "dragon"]}, {"id": 1072, "name": "Kleavor", "variation": "", "gen": 8, "tier": 6, "types": ["bug", "rock"]}, {"id": 549, "name": "Lucario", "variation": "", "gen": 4, "tier": 6, "types": ["fighting", "steel"]}, {"id": 810, "name": "Pangoro", "variation": "", "gen": 6, "tier": 6, "types": ["fighting", "dark"]}, {"id": 256, "name": "Slowking", "variation": "Galar", "gen": 8, "tier": 6, "types": ["poison", "psychic"]}, {"id": 542, "name": "Spiritomb", "variation": "", "gen": 4, "tier": 6, "types": ["ghost", "dark"]}, {"id": 266, "name": "Steelix", "variation": "Mega", "gen": 6, "tier": 6, "types": ["steel", "ground"]}, {"id": 695, "name": "Zoroark", "variation": "", "gen": 5, "tier": 6, "types": ["dark"]}, {"id": 86, "name": "Alakazam", "variation": "", "gen": 1, "tier": 5, "types": ["psychic"]}, {"id": 437, "name": "Banette", "variation": "Mega", "gen": 6, "tier": 5, "types": ["ghost"]}, {"id": 20, "name": "Beedrill", "variation": "Mega", "gen": 6, "tier": 5, "types": ["bug", "poison"]}, {"id": 7, "name": "Charizard", "variation": "", "gen": 1, "tier": 5, "types": ["fire", "flying"]}, {"id": 686, "name": "Cofagrigus", "variation": "", "gen": 5, "tier": 5, "types": ["ghost"]}, {"id": 789, "name": "Delphox", "variation": "", "gen": 6, "tier": 5, "types": ["fire", "psychic"]}, {"id": 1135, "name": "Espathra", "variation": "", "gen": 9, "tier": 5, "types": ["psychic"]}, {"id": 1113, "name": "Garganacl", "variation": "", "gen": 9, "tier": 5, "types": ["rock"]}, {"id": 574, "name": "Glaceon", "variation": "", "gen": 4, "tier": 5, "types": ["ice"]}, {"id": 853, "name": "Gourgeist", "variation": "", "gen": 6, "tier": 5, "types": ["ghost", "grass"]}, {"id": 552, "name": "Hippowdon", "variation": "", "gen": 4, "tier": 5, "types": ["ground"]}, {"id": 573, "name": "Leafeon", "variation": "", "gen": 4, "tier": 5, "types": ["grass"]}, {"id": 902, "name": "Lycanroc", "variation": "Dusk", "gen": 7, "tier": 5, "types": ["rock"]}, {"id": 375, "name": "Mawile", "variation": "", "gen": 3, "tier": 5, "types": ["steel", "fairy"]}, {"id": 908, "name": "Mudsdale", "variation": "", "gen": 7, "tier": 5, "types": ["ground"]}, {"id": 1018, "name": "Polteageist", "variation": "", "gen": 8, "tier": 5, "types": ["ghost"]}, {"id": 1088, "name": "Quaquaval", "variation": "", "gen": 9, "tier": 5, "types": ["water", "fighting"]}, {"id": 269, "name": "Qwilfish", "variation": "", "gen": 2, "tier": 5, "types": ["water", "poison"]}, {"id": 36, "name": "Raichu", "variation": "Alola", "gen": 7, "tier": 5, "types": ["electric", "psychic"]}, {"id": 1030, "name": "Runerigus", "variation": "", "gen": 8, "tier": 5, "types": ["ground", "ghost"]}, {"id": 610, "name": "Serperior", "variation": "", "gen": 5, "tier": 5, "types": ["grass"]}, {"id": 1085, "name": "Skeledirge", "variation": "", "gen": 9, "tier": 5, "types": ["fire", "ghost"]}, {"id": 210, "name": "Typhlosion", "variation": "", "gen": 2, "tier": 5, "types": ["fire"]}, {"id": 253, "name": "Umbreon", "variation": "", "gen": 2, "tier": 5, "types": ["dark"]}, {"id": 181, "name": "Vaporeon", "variation": "", "gen": 1, "tier": 5, "types": ["water"]}, {"id": 59, "name": "Vileplume", "variation": "", "gen": 1, "tier": 5, "types": ["grass", "poison"]}, {"id": 443, "name": "Absol", "variation": "Mega", "gen": 6, "tier": 4, "types": ["dark"]}, {"id": 1032, "name": "Alcremie", "variation": "", "gen": 8, "tier": 4, "types": ["fairy"]}, {"id": 236, "name": "Ampharos", "variation": "Mega", "gen": 6, "tier": 4, "types": ["electric", "dragon"]}, {"id": 1118, "name": "Bellibolt", "variation": "", "gen": 9, "tier": 4, "types": ["electric"]}, {"id": 786, "name": "Chesnaught", "variation": "", "gen": 6, "tier": 4, "types": ["grass", "fighting"]}, {"id": 830, "name": "Clawitzer", "variation": "", "gen": 6, "tier": 4, "types": ["water"]}, {"id": 875, "name": "Decidueye", "variation": "Hisui", "gen": 7, "tier": 4, "types": ["grass", "fighting"]}, {"id": 178, "name": "Ditto", "variation": "", "gen": 1, "tier": 4, "types": ["normal"]}, {"id": 582, "name": "Froslass", "variation": "", "gen": 4, "tier": 4, "types": ["ice", "ghost"]}, {"id": 447, "name": "Glalie", "variation": "Mega", "gen": 6, "tier": 4, "types": ["ice"]}, {"id": 749, "name": "Golurk", "variation": "", "gen": 5, "tier": 4, "types": ["ground", "ghost"]}, {"id": 844, "name": "Goodra", "variation": "", "gen": 6, "tier": 4, "types": ["dragon"]}, {"id": 832, "name": "Heliolisk", "variation": "", "gen": 6, "tier": 4, "types": ["electric", "normal"]}, {"id": 182, "name": "Jolteon", "variation": "", "gen": 1, "tier": 4, "types": ["electric"]}, {"id": 500, "name": "Luxray", "variation": "", "gen": 4, "tier": 4, "types": ["electric"]}, {"id": 90, "name": "Machamp", "variation": "", "gen": 1, "tier": 4, "types": ["fighting"]}, {"id": 824, "name": "Malamar", "variation": "", "gen": 6, "tier": 4, "types": ["dark", "psychic"]}, {"id": 632, "name": "Musharna", "variation": "", "gen": 5, "tier": 4, "types": ["psychic"]}, {"id": 803, "name": "Pyroar", "variation": "", "gen": 6, "tier": 4, "types": ["fire", "normal"]}, {"id": 504, "name": "Rampardos", "variation": "", "gen": 4, "tier": 4, "types": ["rock"]}, {"id": 502, "name": "Roserade", "variation": "", "gen": 4, "tier": 4, "types": ["grass", "poison"]}, {"id": 586, "name": "Rotom", "variation": "Frost", "gen": 4, "tier": 4, "types": ["electric", "ice"]}, {"id": 617, "name": "Samurott", "variation": "Hisui", "gen": 5, "tier": 4, "types": ["water", "dark"]}, {"id": 319, "name": "Sceptile", "variation": "", "gen": 3, "tier": 4, "types": ["grass"]}, {"id": 161, "name": "Starmie", "variation": "", "gen": 1, "tier": 4, "types": ["water", "psychic"]}, {"id": 484, "name": "Torterra", "variation": "", "gen": 4, "tier": 4, "types": ["grass", "ground"]}, {"id": 556, "name": "Toxicroak", "variation": "", "gen": 4, "tier": 4, "types": ["poison", "fighting"]}, {"id": 834, "name": "Tyrantrum", "variation": "", "gen": 6, "tier": 4, "types": ["rock", "dragon"]}, {"id": 645, "name": "Audino", "variation": "", "gen": 5, "tier": 3, "types": ["normal"]}, {"id": 646, "name": "Audino", "variation": "Mega", "gen": 6, "tier": 3, "types": ["normal", "fairy"]}, {"id": 836, "name": "Aurorus", "variation": "", "gen": 6, "tier": 3, "types": ["rock", "ice"]}, {"id": 739, "name": "Beartic", "variation": "", "gen": 5, "tier": 3, "types": ["ice"]}, {"id": 891, "name": "Crabominable", "variation": "", "gen": 7, "tier": 3, "types": ["fighting", "ice"]}, {"id": 874, "name": "Decidueye", "variation": "", "gen": 7, "tier": 3, "types": ["grass", "ghost"]}, {"id": 939, "name": "Drampa", "variation": "", "gen": 7, "tier": 3, "types": ["normal", "dragon"]}, {"id": 613, "name": "Emboar", "variation": "", "gen": 5, "tier": 3, "types": ["fire", "fighting"]}, {"id": 214, "name": "Feraligatr", "variation": "", "gen": 2, "tier": 3, "types": ["water"]}, {"id": 1003, "name": "Flapple", "variation": "", "gen": 8, "tier": 3, "types": ["grass", "dragon"]}, {"id": 183, "name": "Flareon", "variation": "", "gen": 1, "tier": 3, "types": ["fire"]}, {"id": 575, "name": "Gliscor", "variation": "", "gen": 4, "tier": 3, "types": ["ground", "flying"]}, {"id": 274, "name": "Heracross", "variation": "", "gen": 2, "tier": 3, "types": ["bug", "fighting"]}, {"id": 900, "name": "Lycanroc", "variation": "", "gen": 7, "tier": 3, "types": ["rock"]}, {"id": 1029, "name": "Mr. Rime", "variation": "", "gen": 8, "tier": 3, "types": ["ice", "psychic"]}, {"id": 924, "name": "Passimian", "variation": "", "gen": 7, "tier": 3, "types": ["fighting"]}, {"id": 1131, "name": "Scovillain", "variation": "", "gen": 9, "tier": 3, "types": ["grass", "fire"]}, {"id": 290, "name": "Skarmory", "variation": "", "gen": 2, "tier": 3, "types": ["steel", "flying"]}, {"id": 171, "name": "Tauros", "variation": "Paldea-Combat", "gen": 1, "tier": 3, "types": ["fighting"]}, {"id": 906, "name": "Toxapex", "variation": "", "gen": 7, "tier": 3, "types": ["poison", "water"]}, {"id": 848, "name": "Trevenant", "variation": "", "gen": 6, "tier": 3, "types": ["ghost", "grass"]}, {"id": 93, "name": "Victreebel", "variation": "", "gen": 1, "tier": 3, "types": ["grass", "poison"]}, {"id": 379, "name": "Aggron", "variation": "", "gen": 3, "tier": 2, "types": ["steel", "rock"]}, {"id": 32, "name": "Arbok", "variation": "", "gen": 1, "tier": 2, "types": ["poison"]}, {"id": 222, "name": "Ariados", "variation": "", "gen": 2, "tier": 2, "types": ["bug", "poison"]}, {"id": 826, "name": "Barbaracle", "variation": "", "gen": 6, "tier": 2, "types": ["rock", "water"]}, {"id": 506, "name": "Bastiodon", "variation": "", "gen": 4, "tier": 2, "types": ["rock", "steel"]}, {"id": 1033, "name": "Falinks", "variation": "", "gen": 8, "tier": 2, "types": ["fighting"]}, {"id": 814, "name": "Meowstic", "variation": "F", "gen": 6, "tier": 2, "types": ["psychic"]}, {"id": 1042, "name": "Morpeko", "variation": "", "gen": 8, "tier": 2, "types": ["electric", "dark"]}, {"id": 583, "name": "Rotom", "variation": "", "gen": 4, "tier": 2, "types": ["electric", "ghost"]}, {"id": 587, "name": "Rotom", "variation": "Fan", "gen": 4, "tier": 2, "types": ["electric", "flying"]}, {"id": 1006, "name": "Sandaconda", "variation": "", "gen": 8, "tier": 2, "types": ["ground"]}, {"id": 395, "name": "Sharpedo", "variation": "", "gen": 3, "tier": 2, "types": ["water", "dark"]}, {"id": 822, "name": "Slurpuff", "variation": "", "gen": 6, "tier": 2, "types": ["fairy"]}, {"id": 265, "name": "Steelix", "variation": "", "gen": 2, "tier": 2, "types": ["steel", "ground"]}, {"id": 170, "name": "Tauros", "variation": "", "gen": 1, "tier": 2, "types": ["normal"]}, {"id": 442, "name": "Absol", "variation": "", "gen": 3, "tier": 1, "types": ["dark"]}, {"id": 412, "name": "Altaria", "variation": "", "gen": 3, "tier": 1, "types": ["dragon", "flying"]}, {"id": 235, "name": "Ampharos", "variation": "", "gen": 2, "tier": 1, "types": ["electric"]}, {"id": 1004, "name": "Appletun", "variation": "", "gen": 8, "tier": 1, "types": ["grass", "dragon"]}, {"id": 858, "name": "Avalugg", "variation": "", "gen": 6, "tier": 1, "types": ["ice"]}, {"id": 859, "name": "Avalugg", "variation": "Hisui", "gen": 6, "tier": 1, "types": ["ice", "rock"]}, {"id": 436, "name": "Banette", "variation": "", "gen": 3, "tier": 1, "types": ["ghost"]}, {"id": 19, "name": "Beedrill", "variation": "", "gen": 1, "tier": 1, "types": ["bug", "poison"]}, {"id": 400, "name": "Camerupt", "variation": "", "gen": 3, "tier": 1, "types": ["fire", "ground"]}, {"id": 430, "name": "Castform", "variation": "", "gen": 3, "tier": 1, "types": ["normal"]}, {"id": 441, "name": "Chimecho", "variation": "", "gen": 3, "tier": 1, "types": ["psychic"]}, {"id": 839, "name": "Dedenne", "variation": "", "gen": 6, "tier": 1, "types": ["electric", "fairy"]}, {"id": 712, "name": "Emolga", "variation": "", "gen": 5, "tier": 1, "types": ["electric", "flying"]}, {"id": 262, "name": "Forretress", "variation": "", "gen": 2, "tier": 1, "types": ["bug", "steel"]}, {"id": 811, "name": "Furfrou", "variation": "", "gen": 6, "tier": 1, "types": ["normal"]}, {"id": 692, "name": "Garbodor", "variation": "", "gen": 5, "tier": 1, "types": ["poison"]}, {"id": 446, "name": "Glalie", "variation": "", "gen": 3, "tier": 1, "types": ["ice"]}, {"id": 292, "name": "Houndoom", "variation": "", "gen": 2, "tier": 1, "types": ["dark", "fire"]}, {"id": 527, "name": "Lopunny", "variation": "", "gen": 4, "tier": 1, "types": ["normal"]}, {"id": 901, "name": "Lycanroc", "variation": "Midnight", "gen": 7, "tier": 1, "types": ["rock"]}, {"id": 385, "name": "Manectric", "variation": "", "gen": 3, "tier": 1, "types": ["electric"]}, {"id": 207, "name": "Meganium", "variation": "", "gen": 2, "tier": 1, "types": ["grass"]}, {"id": 23, "name": "Pidgeot", "variation": "", "gen": 1, "tier": 1, "types": ["normal", "flying"]}, {"id": 33, "name": "Pikachu", "variation": "", "gen": 1, "tier": 1, "types": ["electric"]}, {"id": 168, "name": "Pinsir", "variation": "", "gen": 1, "tier": 1, "types": ["bug"]}, {"id": 616, "name": "Samurott", "variation": "", "gen": 5, "tier": 1, "types": ["water"]}, {"id": 630, "name": "Simipour", "variation": "", "gen": 5, "tier": 1, "types": ["water"]}, {"id": 626, "name": "Simisage", "variation": "", "gen": 5, "tier": 1, "types": ["grass"]}, {"id": 628, "name": "Simisear", "variation": "", "gen": 5, "tier": 1, "types": ["fire"]}, {"id": 743, "name": "Stunfisk", "variation": "", "gen": 5, "tier": 1, "types": ["ground", "electric"]}, {"id": 744, "name": "Stunfisk", "variation": "Galar", "gen": 8, "tier": 1, "types": ["ground", "steel"]}, {"id": 884, "name": "Toucannon", "variation": "", "gen": 7, "tier": 1, "types": ["normal", "flying"]}, {"id": 619, "name": "Watchog", "variation": "", "gen": 5, "tier": 1, "types": ["normal"]}];
+
+// ---------- sprites ----------
+const PLACEHOLDER_SPRITE = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="#3A3A3A" stroke-width="2"/><line x1="3" y1="20" x2="37" y2="20" stroke="#3A3A3A" stroke-width="2"/><circle cx="20" cy="20" r="5" fill="#3A3A3A"/></svg>'
+);
+
+function kebab(s){
+  return String(s||'')
+    .toLowerCase()
+    .replace(/['".]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+}
+
+const REGIONAL_SLUG_MAP = { alola: 'alolan', galar: 'galarian', hisui: 'hisuian' };
+
+function spriteCandidates(mon){
+  const base = kebab(mon.name);
+  const slugs = [];
+  if(mon.variation){
+    const vLower = mon.variation.toLowerCase();
+    const mapped = REGIONAL_SLUG_MAP[vLower];
+    const vSlug = kebab(mon.variation);
+    if(mapped) slugs.push(base + '-' + mapped);
+    slugs.push(base + '-' + vSlug);
+  } else {
+    slugs.push(base);
+  }
+  const urls = [];
+  slugs.forEach(s => urls.push('https://img.pokemondb.net/sprites/scarlet-violet/icon/' + s + '.png'));
+  slugs.forEach(s => urls.push('https://img.pokemondb.net/sprites/home/normal/2x/' + s + '.jpg'));
+  if(mon.variation){
+    urls.push('https://img.pokemondb.net/sprites/scarlet-violet/icon/' + base + '.png');
+  }
+  return urls;
+}
+
+function makeSpriteImg(mon, cssClass){
+  const candidates = spriteCandidates(mon);
+  const img = document.createElement('img');
+  img.className = cssClass;
+  img.alt = '';
+  img.loading = 'lazy';
+  img.src = candidates[0];
+  let idx = 0;
+  img.addEventListener('error', function(){
+    idx++;
+    if(idx < candidates.length){
+      img.src = candidates[idx];
+    } else {
+      img.onerror = null;
+      img.src = PLACEHOLDER_SPRITE;
+      img.style.opacity = '0.4';
+    }
+  });
+  return img;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ---------- Pokémon type colors ----------
+const TYPE_COLORS = {
+  normal:'#A8A878', fire:'#F08030', water:'#6890F0', electric:'#F8D030',
+  grass:'#78C850', ice:'#98D8D8', fighting:'#C03028', poison:'#A040A0',
+  ground:'#E0C068', flying:'#A890F0', psychic:'#F85888', bug:'#A8B820',
+  rock:'#B8A038', ghost:'#705898', dragon:'#7038F8', dark:'#705848',
+  steel:'#B8B8D0', fairy:'#EE99AC'
+};
+function textColorFor(hex){
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  const luminance = (0.299*r + 0.587*g + 0.114*b) / 255;
+  return luminance > 0.6 ? '#111' : '#fff';
+}
+function typeBadgesHtml(types){
+  return (types||[]).map(t=>{
+    const bg = TYPE_COLORS[t] || '#888';
+    const fg = textColorFor(bg);
+    return '<span class="type-badge" style="background:'+bg+';color:'+fg+';">'+escapeHtml(t)+'</span>';
+  }).join('');
+}
+
+// ---------- controls ----------
+const els = {
+  searchBox: document.getElementById('searchBox'),
+  tierFilter: document.getElementById('tierFilter'),
+  genFilter: document.getElementById('genFilter'),
+  typeFilter: document.getElementById('typeFilter'),
+  sortMode: document.getElementById('sortMode'),
+  poolCount: document.getElementById('poolCount'),
+  poolGrid: document.getElementById('poolGrid'),
+  statsRow: document.getElementById('statsRow'),
+};
+
+function populateFilters(){
+  const tiers = Array.from(new Set(POOL.map(p=>p.tier))).sort((a,b)=>b-a);
+  tiers.forEach(t=>{
+    const o = document.createElement('option');
+    o.value=t; o.textContent='Tier '+t;
+    els.tierFilter.appendChild(o);
+  });
+  const gens = Array.from(new Set(POOL.map(p=>p.gen))).sort((a,b)=>a-b);
+  gens.forEach(g=>{
+    const o = document.createElement('option');
+    o.value=g; o.textContent='Gen '+g;
+    els.genFilter.appendChild(o);
+  });
+  const typesUsed = Array.from(new Set(POOL.flatMap(p=>p.types||[]))).sort();
+  typesUsed.forEach(t=>{
+    const o = document.createElement('option');
+    o.value=t; o.textContent=t.charAt(0).toUpperCase()+t.slice(1);
+    els.typeFilter.appendChild(o);
+  });
+}
+
+function renderStats(){
+  const tiers = POOL.map(p=>p.tier);
+  const maxTier = Math.max(...tiers);
+  const avg = (tiers.reduce((a,b)=>a+b,0) / tiers.length).toFixed(1);
+  els.statsRow.innerHTML = [
+    ['Total Draftable', POOL.length],
+    ['Tiers', Math.max(...tiers) + ' – ' + Math.min(...tiers)],
+    ['Highest Cost', maxTier + ' pts'],
+    ['Average Cost', avg + ' pts'],
+  ].map(([label, num]) => '<div><span class="num">'+num+'</span><span class="label">'+label+'</span></div>').join('');
+}
+
+function renderPool(){
+  const search = els.searchBox.value.trim().toLowerCase();
+  const tierVal = els.tierFilter.value;
+  const genVal = els.genFilter.value;
+  const typeVal = els.typeFilter.value;
+  const sortMode = els.sortMode.value;
+
+  let list = POOL.filter(p=>{
+    if(tierVal!=='all' && p.tier !== parseInt(tierVal,10)) return false;
+    if(genVal!=='all' && p.gen !== parseInt(genVal,10)) return false;
+    if(typeVal!=='all' && !(p.types||[]).includes(typeVal)) return false;
+    if(search){
+      const hay = (p.name+' '+p.variation).toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  list.sort((a,b)=>{
+    if(sortMode==='tierDesc') return b.tier - a.tier || a.name.localeCompare(b.name);
+    if(sortMode==='tierAsc') return a.tier - b.tier || a.name.localeCompare(b.name);
+    return a.name.localeCompare(b.name);
+  });
+
+  els.poolCount.textContent = list.length + ' shown';
+  els.poolGrid.innerHTML = '';
+
+  if(list.length===0){
+    const div = document.createElement('div');
+    div.className = 'empty-state';
+    div.textContent = 'No Pokémon match those filters.';
+    els.poolGrid.appendChild(div);
+    return;
+  }
+
+  list.forEach(p=>{
+    const card = document.createElement('div');
+    card.className = 'mon-card';
+    card.appendChild(makeSpriteImg(p, 'mon-sprite'));
+
+    const info = document.createElement('div');
+    info.className = 'mon-info';
+    info.innerHTML = '<div class="mn">'+escapeHtml(p.name)+(p.variation?' <span class="mv">'+escapeHtml(p.variation)+'</span>':'')+'</div>' +
+      '<div class="mg">Gen '+p.gen+'</div>' +
+      '<div class="type-badges">'+typeBadgesHtml(p.types)+'</div>';
+    card.appendChild(info);
+
+    const tierChip = document.createElement('span');
+    tierChip.className = 'tier-chip';
+    tierChip.textContent = p.tier;
+    card.appendChild(tierChip);
+
+    els.poolGrid.appendChild(card);
+  });
+}
+
+populateFilters();
+renderStats();
+renderPool();
+
+els.searchBox.addEventListener('input', renderPool);
+els.tierFilter.addEventListener('change', renderPool);
+els.genFilter.addEventListener('change', renderPool);
+els.typeFilter.addEventListener('change', renderPool);
+els.sortMode.addEventListener('change', renderPool);
+</script>
+
+</body>
+</html>
