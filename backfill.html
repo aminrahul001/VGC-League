@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backfill Tool — Pokemon VGC Draft League</title>
+<style>
+  body{background:#0D0D0D;color:#FAFAF7;font-family:'Courier New',monospace;padding:30px;line-height:1.6;}
+  h1{color:#FFCB05;font-size:22px;}
+  p{color:#B8B7B2;font-size:14px;max-width:640px;}
+  .card{background:#1C1C1C;border:1px solid rgba(250,250,247,0.14);border-radius:6px;padding:20px;margin-bottom:16px;}
+  .card h2{margin:0 0 8px;font-size:16px;color:#FAFAF7;}
+  select{background:#161616;color:#FAFAF7;border:1px solid rgba(250,250,247,0.14);padding:8px;border-radius:3px;font-family:inherit;min-width:280px;}
+  button{background:#FFCB05;color:#0D0D0D;border:none;padding:10px 18px;border-radius:3px;font-weight:bold;cursor:pointer;font-family:inherit;}
+  button:hover{background:#ffd633;}
+  button:disabled{opacity:0.4;cursor:not-allowed;}
+  .status{font-size:13px;margin-top:10px;}
+  .ok{color:#FFCB05;}
+  .err{color:#FF8A8A;}
+  .match-auto{color:#B8B7B2;font-size:12px;margin-top:6px;}
+</style>
+</head>
+<body>
+
+<h1>One-Time Backfill Tool</h1>
+<p>This patches your existing saved schedules with team roster + avatar data pulled from their matching saved draft, so you don't have to regenerate any schedules from scratch. Safe to run more than once — it only overwrites the roster/avatar fields, nothing else (results, KO counts, and playoff brackets are untouched). Delete this file once you're done with it.</p>
+
+<div id="container"><p>Loading…</p></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyAJgrhwFih2XZG5XdNvAcIB0m5VwL6Ebn4",
+    authDomain: "pokemon-vgc-draft-league.firebaseapp.com",
+    projectId: "pokemon-vgc-draft-league",
+    storageBucket: "pokemon-vgc-draft-league.firebasestorage.app",
+    messagingSenderId: "605274494232",
+    appId: "1:605274494232:web:f0f691ce048da2f5e57a6d"
+  };
+
+  const app = initializeApp(FIREBASE_CONFIG);
+  const db = getFirestore(app);
+  const container = document.getElementById('container');
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  async function run(){
+    const [schedulesSnap, draftsSnap] = await Promise.all([
+      getDocs(collection(db, 'schedules')),
+      getDocs(collection(db, 'draftResults'))
+    ]);
+
+    const schedules = [];
+    schedulesSnap.forEach(d => schedules.push({ id: d.id, ...d.data() }));
+    const drafts = [];
+    draftsSnap.forEach(d => drafts.push({ id: d.id, ...d.data() }));
+
+    if(schedules.length === 0){
+      container.innerHTML = '<p>No saved schedules found — nothing to backfill.</p>';
+      return;
+    }
+    if(drafts.length === 0){
+      container.innerHTML = '<p>No saved drafts found in draftResults — nothing to pull team data from.</p>';
+      return;
+    }
+
+    container.innerHTML = '';
+    schedules.forEach(sch => {
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const alreadyHas = sch.trainerRosters && Object.keys(sch.trainerRosters).length > 0;
+      const autoMatchIdx = drafts.findIndex(d => d.seasonName === sch.seasonName);
+
+      card.innerHTML =
+        '<h2>' + escapeHtml(sch.seasonName || 'Untitled Season') + (alreadyHas ? ' <span style="color:#FFCB05;font-size:12px;">(already has team data)</span>' : '') + '</h2>' +
+        '<label>Pull team data from: </label><br>' +
+        '<select id="sel-' + sch.id + '"></select>' +
+        '<div id="match-' + sch.id + '" class="match-auto"></div><br><br>' +
+        '<button id="btn-' + sch.id + '">Backfill this schedule</button>' +
+        '<div class="status" id="status-' + sch.id + '"></div>';
+
+      container.appendChild(card);
+
+      const select = document.getElementById('sel-' + sch.id);
+      drafts.forEach((d, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        const dateStr = d.savedAt ? new Date(d.savedAt.seconds * 1000).toLocaleDateString() : '';
+        opt.textContent = (d.seasonName || 'Untitled Draft') + (dateStr ? ' — ' + dateStr : '');
+        if(i === autoMatchIdx) opt.selected = true;
+        select.appendChild(opt);
+      });
+
+      const matchNote = document.getElementById('match-' + sch.id);
+      matchNote.textContent = autoMatchIdx >= 0
+        ? 'Auto-matched by season name — change the dropdown if this is wrong.'
+        : 'No exact season-name match found — pick the correct draft manually.';
+
+      document.getElementById('btn-' + sch.id).addEventListener('click', async () => {
+        const statusEl = document.getElementById('status-' + sch.id);
+        const chosenDraft = drafts[parseInt(select.value, 10)];
+        if(!chosenDraft){
+          statusEl.textContent = 'Pick a draft first.';
+          statusEl.className = 'status err';
+          return;
+        }
+        const trainerRosters = {};
+        const trainerAvatars = {};
+        (chosenDraft.trainers || []).forEach(t => {
+          trainerRosters[t.name] = t.roster || [];
+          if(t.avatar) trainerAvatars[t.name] = t.avatar;
+        });
+        try{
+          await updateDoc(doc(db, 'schedules', sch.id), { trainerRosters, trainerAvatars });
+          statusEl.textContent = 'Done — team data added. Refresh the Standings page to see it.';
+          statusEl.className = 'status ok';
+        }catch(err){
+          statusEl.textContent = 'Failed: ' + err.message;
+          statusEl.className = 'status err';
+        }
+      });
+    });
+  }
+
+  run().catch(err => {
+    container.innerHTML = '<p style="color:#FF8A8A;">Error loading data: ' + escapeHtml(err.message) + '</p>';
+  });
+</script>
+
+</body>
+</html>
